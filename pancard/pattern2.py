@@ -120,5 +120,7 @@ class PanCardPattern2:
     def __find_matching_text_index_father_name(self, lines, matching_text) -> int:
         for i,line in enumerate(lines):
             if len(line) != 1 and line == matching_text:
-                return i -1
+                if len(lines[i -1]) != 1:
+                    return i -1
+                return i - 2
         return 404
