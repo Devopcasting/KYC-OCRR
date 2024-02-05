@@ -15,25 +15,23 @@ class PanCardPattern2:
         result = {}
         matching_text_coords = []
 
-        matching_text_keyword = ["GOVT. OF INDIA"," GOVT.", "INDIA", "INCOME", "TAX", "DEPARTMENT"]
+        matching_text_keyword = ["GOVT. OF INDIA"," GOVT.", "INDIA", "INCOME", "TAX", "DEPARTMENT", "DEPARTNENT", "INCOME TAX DEPARTNENT"]
 
         """split the text into lines"""
         lines = [i for i in self.text.splitlines() if len(i) != 0]
-
         """find the matching text index"""
         matching_text_index = self.__find_matching_text_index_username(lines, matching_text_keyword)
         if matching_text_index == 404:
             return result
         
         """get the next line of matching index"""
-        pattern = r"\b(?:department|income|tax|govt|are|an)\b(?=\s|\W|$)|[-=\d]+"
+        pattern = r"\b(?:department|departnent|income|tax|govt|are|an|ad)\b(?=\s|\W|$)|[-=\d]+"
         for line in lines[matching_text_index:]:
             match = re.search(pattern, line.lower(), flags=re.IGNORECASE)
             if match:
                 continue
             next_line_list = line.split()
             break
-
         """remove special characters and white spaces"""
         clean_next_line = [element for element in next_line_list if re.search(r'[a-zA-Z0-9]', element)]
         user_name = " ".join(clean_next_line)
