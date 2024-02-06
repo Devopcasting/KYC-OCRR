@@ -1,10 +1,17 @@
 import pytesseract
+import configparser
 import re
 from ocrr_log_mgmt.ocrr_log import OCRREngineLogging
 from helper.dl_text_coordinates import TextCoordinates
 
 class DrivingLicenseDocumentInfo:
     def __init__(self, document_path) -> None:
+
+        """Read config.ini"""
+        config = configparser.ConfigParser(allow_no_value=True)
+        config.read(r'C:\Program Files (x86)\OCRR\config\config.ini')
+        self.DOCUMENT_MODE = int(config['Mode']['ShowAvailableRedaction'])
+
         """Logger"""
         log_config = OCRREngineLogging()
         self.logger = log_config.configure_logger()
@@ -161,32 +168,79 @@ class DrivingLicenseDocumentInfo:
     def collect_dl_info(self):
         dl_card_info_list = []
 
-        """Collect DL number"""
-        dl_number = self.extract_dl_number()
-        if not dl_number:
-            self.logger.error("| Driving license number not found")
-            return {"message": "Unable to extract driving license number", "status": "REJECTED"}
-        dl_card_info_list.append(dl_number)
+        """Check Document mode"""
+        if self.DOCUMENT_MODE == 1:
 
-        """Collect DL dates"""
-        dl_dates = self.extract_dates()
-        if dl_dates:
-            dl_card_info_list.append(dl_dates)
+            """Collect DL number"""
+            dl_number = self.extract_dl_number()
+            if dl_number:
+                dl_card_info_list.append(dl_number)
+            else:
+                self.logger.error("| Driving license number not found")
         
-        """Collect DL pincode"""
-        dl_pincode = self.extract_pincode()
-        if dl_pincode:
-            dl_card_info_list.append(dl_pincode)
+            """Collect DL dates"""
+            dl_dates = self.extract_dates()
+            if dl_dates:
+                dl_card_info_list.append(dl_dates)
+            else:
+                self.logger.error("| Driving license dates not found")
 
-        """Collect DL State"""
-        dl_state = self.extract_state()
-        if dl_state:
-            dl_card_info_list.append(dl_state)
 
-        """Collect DL name"""
-        dl_name = self.extract_name()
-        if dl_name:
-            dl_card_info_list.append(dl_name)
+            """Collect DL pincode"""
+            dl_pincode = self.extract_pincode()
+            if dl_pincode:
+                dl_card_info_list.append(dl_pincode)
+            else:
+                self.logger.error("| Driving license Pincode not found")
+            
+            """Collect DL State"""
+            dl_state = self.extract_state()
+            if dl_state:
+                dl_card_info_list.append(dl_state)
+            else:
+                self.logger.error("| Driving license State name not found")
+            
+            """Collect DL name"""
+            dl_name = self.extract_name()
+            if dl_name:
+                dl_card_info_list.append(dl_name)
+            else:
+                self.logger.error("| Driving license name not found")
 
-        print(dl_card_info_list)
-        return {"message": "Successfully Redacted Driving License Document", "status": "REDACTED", "data": dl_card_info_list}
+
+            """check dl_card_info_list"""
+            if len(dl_card_info_list) == 0:
+                return {"message": "Unable to extract driving license information", "status": "REJECTED"}
+            else:
+                return {"message": "Successfully Redacted Driving License Document", "status": "REDACTED", "data": dl_card_info_list}
+
+        else:
+        
+            """Collect DL number"""
+            dl_number = self.extract_dl_number()
+            if not dl_number:
+                self.logger.error("| Driving license number not found")
+                return {"message": "Unable to extract driving license number", "status": "REJECTED"}
+            dl_card_info_list.append(dl_number)
+
+            """Collect DL dates"""
+            dl_dates = self.extract_dates()
+            if dl_dates:
+                dl_card_info_list.append(dl_dates)
+        
+            """Collect DL pincode"""
+            dl_pincode = self.extract_pincode()
+            if dl_pincode:
+                dl_card_info_list.append(dl_pincode)
+
+            """Collect DL State"""
+            dl_state = self.extract_state()
+            if dl_state:
+                dl_card_info_list.append(dl_state)
+
+            """Collect DL name"""
+            dl_name = self.extract_name()
+            if dl_name:
+                dl_card_info_list.append(dl_name)
+
+            return {"message": "Successfully Redacted Driving License Document", "status": "REDACTED", "data": dl_card_info_list}
