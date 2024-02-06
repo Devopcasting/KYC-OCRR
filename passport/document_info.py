@@ -1,10 +1,16 @@
 import re
 import pytesseract
+import configparser
 from ocrr_log_mgmt.ocrr_log import OCRREngineLogging
 from helper.passport_text_coordinates import TextCoordinates
 
 class PassportDocumentInfo:
     def __init__(self, document_path) -> None:
+        """Read config.ini"""
+        config = configparser.ConfigParser(allow_no_value=True)
+        config.read(r'C:\Program Files (x86)\OCRR\config\config.ini')
+        self.DOCUMENT_MODE = int(config['Mode']['ShowAvailableRedaction'])
+
         """Logger"""
         log_config = OCRREngineLogging()
         self.logger = log_config.configure_logger()
@@ -400,70 +406,151 @@ class PassportDocumentInfo:
     def collect_passport_info(self) -> dict:
         passport_doc_info_list = []
 
-        """Collect: Passport Number"""
-        passport_number = self.extract_passport_number()
-        if not passport_number:
-            self.logger.error("| Passport number not found")
-            return {"message": "Unable to extract passport number", "status": "REJECTED"}
-        passport_doc_info_list.append(passport_number)
+        """Check Document mode"""
+        if self.DOCUMENT_MODE == 1:
+
+            """Collect: Passport Number"""
+            passport_number = self.extract_passport_number()
+            if passport_number:
+                passport_doc_info_list.append(passport_number)
+            else:
+                self.logger.error("| Passport number not found")
+            
+            """Collect: Dates"""
+            passport_dates = self.extract_dates()
+            if passport_dates:
+                passport_doc_info_list.append(passport_dates)
+            else:
+                self.logger.error("| Passport dates not found")
+            
+            """Collect: Gender"""
+            gender = self.extract_gender()
+            if gender:
+                passport_doc_info_list.append(gender)
+            else:
+                self.logger.error("| Passport gender not found")
+            
+            """Collect: Surname"""
+            surname = self.extract_surname()
+            if surname:
+                passport_doc_info_list.append(surname)
+            else:
+                self.logger.error("| Passport surname not found")
+            
+            """Collect: Given name"""
+            given_name = self.extract_given_name()
+            if given_name:
+                passport_doc_info_list.append(given_name)
+            else:
+                self.logger.error("| Passport given name not found")
+            
+            """Collect: Father's name"""
+            father_name = self.extract_father_name()
+            if father_name:
+                passport_doc_info_list.append(father_name)
+            else:
+                self.logger.error("| Passport father's name not found")
+            
+            """Collect: Mother's name"""
+            mother_name = self.extract_mother_name()
+            if mother_name:
+                passport_doc_info_list.append(mother_name)
+            else:
+                self.logger.error("| Passport mother name not found")
+            
+            """Collect: IND name"""
+            ind_name = self.extract_ind_name()
+            if ind_name:
+                passport_doc_info_list.append(ind_name)
+            else:
+                self.logger.error("| Passport IND name not found")
+            
+            """Collect: Pincode"""
+            pincode_number = self.extract_pincode()
+            if pincode_number:
+                passport_doc_info_list.append(pincode_number)
+            else:
+                self.logger.error("| Passport Pincode number not found")
+            
+            """Collect: State"""
+            state = self.extract_state()
+            if state:
+                passport_doc_info_list.append(state)
+            else:
+                self.logger.error("| Passport State name not found")
+            
+            """check passport_doc_info_list"""
+            if len(passport_doc_info_list) == 0:
+                return {"message": "Unable to extract Passport information", "status": "REJECTED"}
+            else:
+                return {"message": "Successfully Redacted Passport Document", "status": "REDACTED", "data": passport_doc_info_list}
+
+        else:
+
+            """Collect: Passport Number"""
+            passport_number = self.extract_passport_number()
+            if not passport_number:
+                self.logger.error("| Passport number not found")
+                return {"message": "Unable to extract passport number", "status": "REJECTED"}
+            passport_doc_info_list.append(passport_number)
  
-        """Collect: Dates"""
-        passport_dates = self.extract_dates()
-        if not passport_dates:
-            self.logger.error("| Passport dates not found")
-            return {"message": "Unable to extract dates from passport document", "status": "REJECTED"}
-        passport_doc_info_list.append(passport_dates)
+            """Collect: Dates"""
+            passport_dates = self.extract_dates()
+            if not passport_dates:
+                self.logger.error("| Passport dates not found")
+                return {"message": "Unable to extract dates from passport document", "status": "REJECTED"}
+            passport_doc_info_list.append(passport_dates)
         
-        """Collect: Gender"""
-        gender = self.extract_gender()
-        if not gender:
-            self.logger.error("| Passport gender not found")
-            return {"message": "Unable to extract gender from passport", "status": "REJECTED"}
-        passport_doc_info_list.append(gender)
+            """Collect: Gender"""
+            gender = self.extract_gender()
+            if not gender:
+                self.logger.error("| Passport gender not found")
+                return {"message": "Unable to extract gender from passport", "status": "REJECTED"}
+            passport_doc_info_list.append(gender)
 
-        """Collect: Surname"""
-        surname = self.extract_surname()
-        if not surname:
-            self.logger.error("| Passport surname not found")
-            return {"message": "Unable to extract surname from passport document", "status": "REJECTED"}
-        passport_doc_info_list.append(surname)
+            """Collect: Surname"""
+            surname = self.extract_surname()
+            if not surname:
+                self.logger.error("| Passport surname not found")
+                return {"message": "Unable to extract surname from passport document", "status": "REJECTED"}
+            passport_doc_info_list.append(surname)
 
-        """Collect: Given name"""
-        given_name = self.extract_given_name()
-        if not given_name:
-            self.logger.error("| Passport given name not found")
-            return {"message": "Unable to extract given name from passport", "status": "REJECTED"}
-        passport_doc_info_list.append(given_name)
+            """Collect: Given name"""
+            given_name = self.extract_given_name()
+            if not given_name:
+                self.logger.error("| Passport given name not found")
+                return {"message": "Unable to extract given name from passport", "status": "REJECTED"}
+            passport_doc_info_list.append(given_name)
 
-        """Collect: Father's name"""
-        father_name = self.extract_father_name()
-        if not father_name:
-            self.logger.error("| Passport father's name not found")
-            return {"message": "Unable to extract father's name from passport", "status": "REJECTED"}
-        passport_doc_info_list.append(father_name)
+            """Collect: Father's name"""
+            father_name = self.extract_father_name()
+            if not father_name:
+                self.logger.error("| Passport father's name not found")
+                return {"message": "Unable to extract father's name from passport", "status": "REJECTED"}
+            passport_doc_info_list.append(father_name)
 
-        """Collect: Mother's name"""
-        mother_name = self.extract_mother_name()
-        if not mother_name:
-            self.logger.error("| Passport mother name not found")
-            return {"message": "Unable to extract mother name", "status": "REJECTED"}
-        passport_doc_info_list.append(mother_name)
+            """Collect: Mother's name"""
+            mother_name = self.extract_mother_name()
+            if not mother_name:
+                self.logger.error("| Passport mother name not found")
+                return {"message": "Unable to extract mother name", "status": "REJECTED"}
+            passport_doc_info_list.append(mother_name)
 
-        """Collect: IND name"""
-        ind_name = self.extract_ind_name()
-        if not ind_name:
-            self.logger.error("| Passport IND name not found")
-            return {"message": "Unable to extract IND name from Passport", "status": "REJECTED"}
-        passport_doc_info_list.append(ind_name)
+            """Collect: IND name"""
+            ind_name = self.extract_ind_name()
+            if not ind_name:
+                self.logger.error("| Passport IND name not found")
+                return {"message": "Unable to extract IND name from Passport", "status": "REJECTED"}
+            passport_doc_info_list.append(ind_name)
 
-        """Collect: Pincode"""
-        pincode_number = self.extract_pincode()
-        if pincode_number:
-            passport_doc_info_list.append(pincode_number)
+            """Collect: Pincode"""
+            pincode_number = self.extract_pincode()
+            if pincode_number:
+                passport_doc_info_list.append(pincode_number)
 
-        """Collect: State"""
-        state = self.extract_state()
-        if state:
-            passport_doc_info_list.append(state)
+            """Collect: State"""
+            state = self.extract_state()
+            if state:
+                passport_doc_info_list.append(state)
 
-        return {"message": "Successfully Redacted Passport Document", "status": "REDACTED", "data": passport_doc_info_list}
+            return {"message": "Successfully Redacted Passport Document", "status": "REDACTED", "data": passport_doc_info_list}
