@@ -1,11 +1,16 @@
 import pytesseract
 import configparser
 import re
+import cv2
+from qreader import QReader
 from ocrr_log_mgmt.ocrr_log import OCRREngineLogging
 from helper.eaadhaarcard_text_coordinates import TextCoordinates
 
 class EaadhaarCardInfo:
     def __init__(self, document_path: str) -> None:
+
+        self.document_path = document_path
+
         """Read config.ini"""
         config = configparser.ConfigParser(allow_no_value=True)
         config.read(r'C:\Program Files (x86)\OCRR\config\config.ini')
@@ -28,6 +33,9 @@ class EaadhaarCardInfo:
                        'karnataka', 'kerala', 'lakshadweep (ut)', 'madhya pradesh', 'maharashtra', 'manipur', 
                        'meghalaya', 'mizoram', 'nagaland', 'odisha', 'puducherry (ut)', 'punjab', 'rajasthan', 
                        'sikkim', 'tamil nadu', 'telangana', 'tripura', 'uttarakhand', 'uttar pradesh', 'bangalore']
+        
+        # Create a QReader instance
+        self.qreader = QReader()
     
     """func: extract dob"""
     def extract_dob(self) -> dict:
@@ -255,7 +263,32 @@ class EaadhaarCardInfo:
 
         return result
 
+    """func: extract QR code"""
+    def extract_qr_code(self):
+        result = {}
+        qrcode_coordinates = []
+
+        # Load the image
+        image = cv2.imread(self.document_path)
+
+        # Detect and decode QR codes
+        found_qrs = self.qreader.detect(image)
+
+        if not found_qrs:
+            return result
+        """get 50% of QR Code"""
+        for i in found_qrs:
+            x1, y1, x2, y2 = i['bbox_xyxy']
+            qrcode_coordinates.append([int(round(x1)), int(round(y1)), int(round(x2)), (int(round(y1)) + int(round(y2))) // 2])
+            #qrcode_coordinates.append([int(round(x1)), int(round(y1)), int(round(x2)), int(round(y2))])
         
+        result = {
+            "QR-Code": f"Found {len(qrcode_coordinates)} QR Codes",
+            "coordinates": qrcode_coordinates
+        }
+
+        return result
+
     """func: get first 3 chars"""
     def get_first_3_chars(self, coords: list) -> list:
         width = coords[2] - coords[0]
@@ -324,6 +357,14 @@ class EaadhaarCardInfo:
                 eaadhaarcard_doc_info_list.append(state)
             else:
                 self.logger.error("| E-Aadhaar State name not found")
+            
+            """Collect: QR-Code"""
+            qr_code = self.extract_qr_code()
+            if qr_code:
+                eaadhaarcard_doc_info_list.append(qr_code)
+            else:
+                self.logger.error("| E-Aadhaar QR Code not found")
+
 
             """"check eaadhaarcard_doc_info_list"""
             if len(eaadhaarcard_doc_info_list) == 0:
@@ -377,5 +418,14 @@ class EaadhaarCardInfo:
             pincode = self.extract_pin_code()
             if pincode:
                 eaadhaarcard_doc_info_list.append(pincode)
+            
+            """Collect: QR Code"""
+            qr_code = self.extract_qr_code()
+            if qr_code:
+                eaadhaarcard_doc_info_list.append(qr_code)
+            else:
+                self.logger.error("| E-Aadhaar QR-Code not found")
+                return {"message": "Unable to extract aadhaar QR-Code", "status": "REJECTED"}
+
         
             return {"message": "Successfully Redacted E-Aadhaar Card Document", "status": "REDACTED", "data": eaadhaarcard_doc_info_list}
