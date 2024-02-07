@@ -4,6 +4,7 @@ import datetime
 import configparser
 from ocrr_log_mgmt.ocrr_log import OCRREngineLogging
 from helper.pancard_text_coordinates import TextCoordinates
+from helper.pancard_signature_text_coordinates import SignatureTextCoordinates
 from pancard.pattern2 import PanCardPattern2
 from pancard.pattern1 import PanCardPattern1
 
@@ -22,9 +23,15 @@ class PancardDocumentInfo:
         """Get the coordinates of all the extracted text"""
         self.coordinates = TextCoordinates(document_path).generate_text_coordinates()
 
+        """Get the coordinates for signature"""
+        self.signature_coords = SignatureTextCoordinates(document_path).generate_text_coordinates()
+
         """Get the text from document"""
         tesseract_config = r'--oem 3 --psm 11'
         self.text_data = pytesseract.image_to_string(document_path, lang="eng", config=tesseract_config)
+
+        """Get the text for signature identification"""
+        self.signature_text_data = pytesseract.image_to_string(document_path)
     
     """func: extract pancard number"""
     def extract_pancard_number(self) -> dict:
@@ -113,6 +120,60 @@ class PancardDocumentInfo:
         else:
             return result
 
+    """func: extract signature"""
+    def extract_signature(self, pattern_no):
+        result = {}
+        matching_text_keyword = ["signature", "nature"]
+        signature_coordinates = []
+
+        if pattern_no == 1:
+            """get the coordinates"""
+            for i,(x1, y1, x2, y2, text) in enumerate(self.signature_coords):
+                if text.lower() in matching_text_keyword:
+                    signature_coordinates.append([self.signature_coords[i + 1][0], self.signature_coords[i + 1][1],
+                                                   self.signature_coords[i + 1][2], self.signature_coords[i + 1][3] ])
+                    signature_coordinates.append([self.signature_coords[i + 2][0], self.signature_coords[i + 2][1], 
+                                                  self.signature_coords[i + 2][2], self.signature_coords[i + 2][3] ])
+                    break
+            
+            if not signature_coordinates:
+                return result
+            
+            result = {
+                "Signature": "User Signature",
+                "coordinates": signature_coordinates
+            }
+            return result
+
+        else:
+
+            """get the coordinates"""
+            for i,(x1, y1, x2, y2, text) in enumerate(self.signature_coords):
+                if text.lower() in matching_text_keyword:
+                    signature_coordinates.append([self.signature_coords[i - 1][0], self.signature_coords[i - 1][1], 
+                                                  self.signature_coords[i - 1][2], self.signature_coords[i - 1][3] ])
+                    break
+            
+            if not signature_coordinates:
+                return result
+            
+            result = {
+                "Signature": "User Signature",
+                "coordinates": signature_coordinates
+            }
+
+            return result
+
+        
+    """func: find matching text position"""
+    def __find_matching_text(self, lines, matching_text_keyword):
+        for i,line in enumerate(lines):
+            for k in matching_text_keyword:
+                if k.lower() in line.lower():
+                    return i
+        return 404
+    
+
     """func: identify pancard pattern"""
     def identify_pancard_pattern(self) -> int:
         pancard_pattern_keyword_search = ["name", "father's", "father", "/eather's", "uiname"]
@@ -138,6 +199,7 @@ class PancardDocumentInfo:
         except ValueError:
             return False
 
+   
     """func: collect pancard information"""
     def collect_pancard_info(self) -> dict:
         pancard_doc_info_list = []
@@ -192,6 +254,22 @@ class PancardDocumentInfo:
                 else:
                     self.logger.error("| Pancard Father's name not found")
             
+            """Collect: Signature"""
+            if pattern_number == 1:
+                user_signature = self.extract_signature(1)
+
+                if user_signature:
+                    pancard_doc_info_list.append(user_signature)
+                else:
+                    self.logger.error("| Pancard Signature not found")
+            else:
+                user_signature = self.extract_signature(2)
+
+                if user_signature:
+                    pancard_doc_info_list.append(user_signature)
+                else:
+                    self.logger.error("| Pancard Signature not found")
+
             """check pancard_doc_info_list"""
             if len(pancard_doc_info_list) == 0:
                 return {"message": "Unable to extract Pancard information", "status": "REJECTED"}

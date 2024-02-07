@@ -32,6 +32,7 @@ class PanCardPattern2:
                 continue
             next_line_list = line.split()
             break
+        
         """remove special characters and white spaces"""
         clean_next_line = [element for element in next_line_list if re.search(r'[a-zA-Z0-9]', element)]
         user_name = " ".join(clean_next_line)
