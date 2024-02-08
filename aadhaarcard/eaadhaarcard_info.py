@@ -2,6 +2,7 @@ import pytesseract
 import configparser
 import re
 import cv2
+import datetime
 from qreader import QReader
 from ocrr_log_mgmt.ocrr_log import OCRREngineLogging
 from helper.eaadhaarcard_text_coordinates import TextCoordinates
@@ -49,19 +50,41 @@ class EaadhaarCardInfo:
         for i, (x1, y1, x2, y2, text) in enumerate(self.coordinates_default):
             match = re.search(date_pattern, text)
             if match:
-                dob_coordinates = [x1, y1, x2, y2]
-                dob_text = text
-                break
+                if self.validate_date(text, '/'):
+                    dob_coordinates = [x1, y1, x2, y2]
+                    dob_text += " "+text
+                    break
         if not dob_coordinates:
+            result = {
+                "Aadhaar DOB": " ",
+                "coordinates": []
+            }
             return result
         
         """Get first 6 chars"""
         width = dob_coordinates[2] - dob_coordinates[0]
         result = {
-            "DOB": dob_text,
+            "Aadhaar DOB": dob_text,
             "coordinates": [[dob_coordinates[0], dob_coordinates[1], dob_coordinates[0] + int(0.54 * width), dob_coordinates[3]]]
         }
         return result
+
+    """func: validate date"""
+    def validate_date(self, date_str: str, split_pattern: str) -> bool:
+        try:
+            # Split the date string into day, month, and year
+            day, month, year = map(int, date_str.split(split_pattern))
+            # Check if the date is within valid ranges
+            if not (1 <= day <= 31 and 1 <= month <= 12 and 1000 <= year <= 9999):
+                return False
+            # Check for leap year if necessary
+            if month == 2 and day > 28 and not (year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)):
+                return False
+            # Create a datetime object to validate the date
+            datetime.datetime(year, month, day)
+            return True
+        except ValueError:
+            return False
 
     """func: extract gender"""
     def extract_gender(self):
@@ -77,6 +100,10 @@ class EaadhaarCardInfo:
                 gender_text = text
                 break
         if matching_index == 0:
+            result = {
+                "Aadhaar Gender": " ",
+                "coordinates": []
+            }
             return result
         
         """reverse loop from Male/Female index until DOB comes"""
@@ -88,7 +115,7 @@ class EaadhaarCardInfo:
                                            self.coordinates_default[i][2], self.coordinates_default[i][3]])
         
         result = {
-            "Gender": gender_text,
+            "Aadhaar Gender": gender_text,
             "coordinates": [[gender_coordinates[-1][0], gender_coordinates[-1][1], gender_coordinates[0][2], gender_coordinates[0][3]]]
         }
 
@@ -107,6 +134,10 @@ class EaadhaarCardInfo:
             if text.lower() in ["male", "female"]:
                 matching_index = i
         if matching_index == 0:
+            result = {
+                "Aadhaar Number": " ",
+                "coordinates": []
+            }
             return result
         
         """get the coordinates of aadhaar card number"""
@@ -123,7 +154,7 @@ class EaadhaarCardInfo:
                 if i in text:
                     aadhaarcard_coordinates.append([x1, y1, x2, y2])
         result = {
-            "Aadhaar Card Number": aadhaarcard_text,
+            "Aadhaar Number": aadhaarcard_text,
             "coordinates": aadhaarcard_coordinates
         }
         return result
@@ -144,6 +175,10 @@ class EaadhaarCardInfo:
                 matching_text = clean_text[i - 1].split()
                 break
         if not matching_text:
+            result = {
+                "Aadhaar Name": " ",
+                "coordinates": []
+            }
             return result
         clean_matching_text = [i for i in matching_text if i.isalpha()]
 
@@ -155,7 +190,7 @@ class EaadhaarCardInfo:
                 name_coordinates.append([x1, y1, x2, y2])
         
         result = {
-            "Name": " ".join(clean_matching_text),
+            "Aadhaar Name": " ".join(clean_matching_text),
             "coordinates": name_coordinates
         }
         
@@ -177,6 +212,10 @@ class EaadhaarCardInfo:
                 matching_text = clean_text[i - 2].split()
                 break
         if not matching_text:
+            result = {
+                "Aadhaar Regional Name": " ",
+                "coordinates": []
+            }
             return result
         
         if len(matching_text) > 1:
@@ -187,7 +226,7 @@ class EaadhaarCardInfo:
                 name_coordinates.append([x1, y1, x2, y2])
         
         result = {
-            "Name": " ".join(matching_text),
+            "Aadhaar Regional Name": " ".join(matching_text),
             "coordinates": name_coordinates
         }
 
@@ -207,12 +246,16 @@ class EaadhaarCardInfo:
                 mobile_number = text
                 break
         if not mobile_coordinates:
+            result = {
+                "Aadhaar Mobile Number": " ",
+                "coordinates": []
+            }
             return result
         
         """get first 6 chars"""
         width = mobile_coordinates[2] - mobile_coordinates[0]
         result = {
-            "Mobile Number" : mobile_number,
+            "Aadhaar Mobile Number" : mobile_number,
             "coordinates" : [[mobile_coordinates[0], mobile_coordinates[1], mobile_coordinates[0] + int(0.54 * width), mobile_coordinates[3]]]
         }
         return result
@@ -230,13 +273,17 @@ class EaadhaarCardInfo:
                 pin_code_coordinates.append([x1, y1, x2, y2])
                 pin_code = text
         if not pin_code_coordinates:
+            result = {
+                "Aadhaar Pincode": " ",
+                "coordinates": []
+            }
             return result
         
         for i in pin_code_coordinates:
             coords_result = self.get_first_3_chars(i)
             get_coords_result.append(coords_result)
         result = {
-                "Pincode": pin_code,
+                "Aadhaar Pincode": pin_code,
                 "coordinates": get_coords_result
         }
         return result
@@ -254,10 +301,14 @@ class EaadhaarCardInfo:
                 state_name = text
                 break
         if not state_coordinates:
+            result = {
+                "Aadhaar Place Name": " ",
+                "coordinates": []
+            }
             return result
         
         result = {
-            "State": state_name,
+            "Aadhaar Place Name": state_name,
             "coordinates": state_coordinates
         }
 
@@ -275,6 +326,10 @@ class EaadhaarCardInfo:
         found_qrs = self.qreader.detect(image)
 
         if not found_qrs:
+            result = {
+                "Aadhaar QR Code": " ",
+                "coordinates": []
+            }
             return result
         """get 50% of QR Code"""
         for i in found_qrs:
@@ -286,7 +341,6 @@ class EaadhaarCardInfo:
             "QR-Code": f"Found {len(qrcode_coordinates)} QR Codes",
             "coordinates": qrcode_coordinates
         }
-
         return result
 
     """func: get first 3 chars"""
@@ -304,65 +358,74 @@ class EaadhaarCardInfo:
              
             """Collect: Name in regional"""
             name_in_regional = self.extract_name_in_regional()
-            if name_in_regional:
+            if len(name_in_regional['coordinates']) != 0 :
                 eaadhaarcard_doc_info_list.append(name_in_regional)
             else:
+                eaadhaarcard_doc_info_list.append(name_in_regional)
                 self.logger.error("| E-Aadhaar Card Name in regional language not found")
                 
             """Collect: Name in english"""
             name_in_english = self.extract_name_in_english()
-            if name_in_english:
+            if len(name_in_english['coordinates']) != 0:
                 eaadhaarcard_doc_info_list.append(name_in_english)
             else:
+                eaadhaarcard_doc_info_list.append(name_in_english)
                 self.logger.error("| E-Aadhaar Card Name in english not found")
             
             """Collect: DOB"""
             dob = self.extract_dob()
-            if dob:
+            if len(dob['coordinates']) != 0:
                 eaadhaarcard_doc_info_list.append(dob)
             else:
+                eaadhaarcard_doc_info_list.append(dob)
                 self.logger.error("| E-Aadhaar Card DOB not found")
 
             """Collect: Gender"""
             gender = self.extract_gender()
-            if gender:
+            if len(gender['coordinates']) != 0:
                 eaadhaarcard_doc_info_list.append(gender)
             else:
+                eaadhaarcard_doc_info_list.append(gender)
                 self.logger.error("| E-Aadhaar Card Gender not found")
             
             """Collect: Aadhaar Card Number"""
             aadhaarcard_number = self.extract_aadhaarcard_number()
-            if aadhaarcard_number:
+            if len(aadhaarcard_number['coordinates']) != 0:
                 eaadhaarcard_doc_info_list.append(aadhaarcard_number)
             else:
+                eaadhaarcard_doc_info_list.append(aadhaarcard_number)
                 self.logger.error("| E-Aadhaar Card Number not found")
             
             """Collect: Mobile Number"""
             mobile_number = self.extract_mobile_number()
-            if mobile_number:
+            if len(mobile_number['coordinates']) != 0:
                 eaadhaarcard_doc_info_list.append(mobile_number)
             else:
+                eaadhaarcard_doc_info_list.append(mobile_number)
                 self.logger.error("| E-Aadhaar Mobile Number not found")
 
             """Collect: Pin Code"""
             pincode = self.extract_pin_code()
-            if pincode:
+            if len(pincode['coordinates']) != 0:
                 eaadhaarcard_doc_info_list.append(pincode)
             else:
+                eaadhaarcard_doc_info_list.append(pincode)
                 self.logger.error("| E-Aadhaar Pincode not found")
             
             """Collect: State name"""
             state = self.extract_state_name()
-            if state:
+            if len(state['coordinates']) != 0:
                 eaadhaarcard_doc_info_list.append(state)
             else:
+                eaadhaarcard_doc_info_list.append(state)
                 self.logger.error("| E-Aadhaar State name not found")
             
             """Collect: QR-Code"""
             qr_code = self.extract_qr_code()
-            if qr_code:
+            if len(qr_code['coordinates']) != 0:
                 eaadhaarcard_doc_info_list.append(qr_code)
             else:
+                eaadhaarcard_doc_info_list.append(qr_code)
                 self.logger.error("| E-Aadhaar QR Code not found")
 
 
