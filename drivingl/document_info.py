@@ -44,6 +44,10 @@ class DrivingLicenseDocumentInfo:
                 dl_number_coordinated.append([x1, y1, x2, y2])
                 break
         if not dl_number_coordinated:
+            result = {
+                "Driving License Number": " ",
+                "coordinates": []    
+            }
             return result
         
         result = {
@@ -71,6 +75,10 @@ class DrivingLicenseDocumentInfo:
                 date_text += " "+ text
         
         if not date_coords:
+            result = {
+                "Driving License Dates": " ",
+                "coordinates": []
+            }
             return result
         
         """get the first 6 chars"""
@@ -79,7 +87,7 @@ class DrivingLicenseDocumentInfo:
             date_coordinates.append([i[0], i[1], i[0] + int(0.54 * width), i[3]])
         
         result = {
-            "Dates": date_text,
+            "Driving License Dates": date_text,
             "coordinates": date_coordinates
         }
 
@@ -98,13 +106,17 @@ class DrivingLicenseDocumentInfo:
                 pincode_coords.append([x1, y1, x2, y2])
                 pincode_number += " "+text
                 break
-        
+        if not pincode_coords:
+            result = {
+                "Driving License Pincode": " ",
+                "coordinates": []
+            }
         for i in pincode_coords:
             width = i[2] - i[0]
             pincode_coordinates.append([i[0], i[1], i[0] + int(0.30 * width), i[3]])
         
         result = {
-            "Pincode": pincode_number,
+            "Driving License Pincode": pincode_number,
             "coordinates": pincode_coordinates
         }
 
@@ -122,8 +134,13 @@ class DrivingLicenseDocumentInfo:
                 state_coordinates.append([x1, y1, x2, y2])
                 state_name = text
         
+        if not state_coordinates:
+            result = {
+                "Driving License Place": " ",
+                "coordinates": []
+            }
         result = {
-            "State": state_name,
+            "Driving License Place": state_name,
             "coordinates": state_coordinates
         }
 
@@ -143,6 +160,12 @@ class DrivingLicenseDocumentInfo:
                 matching_text_index = i
                 break
         
+        if not matching_text_index:
+            result = {
+                "Driving License Name": " ",
+                "coordinates": []
+            }
+
         """get the coordinates"""
         for i in range(matching_text_index + 1, len(self.coordinates)):
             text = self.coordinates[i][4]
@@ -153,12 +176,12 @@ class DrivingLicenseDocumentInfo:
         
         if len(name_coords) > 1:
             result = {
-                "Name": name_text,
+                "Driving License Name": name_text,
                 "coordinates": [[name_coords[0][0], name_coords[0][1], name_coords[-1][2], name_coords[-1][3]]]
             }
         else:
             result = {
-                "Name": name_text,
+                "Driving License Name": name_text,
                 "coordinates": [[name_coords[0][0], name_coords[0][1], name_coords[0][2], name_coords[0][3]]]
             }
         
@@ -173,38 +196,42 @@ class DrivingLicenseDocumentInfo:
 
             """Collect DL number"""
             dl_number = self.extract_dl_number()
-            if dl_number:
+            if len(dl_number['coordinates']) != 0:
                 dl_card_info_list.append(dl_number)
             else:
+                dl_card_info_list.append(dl_number)
                 self.logger.error("| Driving license number not found")
         
             """Collect DL dates"""
             dl_dates = self.extract_dates()
-            if dl_dates:
+            if len(dl_dates['coordinates']) != 0:
                 dl_card_info_list.append(dl_dates)
             else:
+                dl_card_info_list.append(dl_dates)
                 self.logger.error("| Driving license dates not found")
-
 
             """Collect DL pincode"""
             dl_pincode = self.extract_pincode()
-            if dl_pincode:
+            if len(dl_pincode['coordinates']) != 0:
                 dl_card_info_list.append(dl_pincode)
             else:
+                dl_card_info_list.append(dl_pincode)
                 self.logger.error("| Driving license Pincode not found")
             
             """Collect DL State"""
             dl_state = self.extract_state()
-            if dl_state:
+            if len(dl_state['coordinates']) != 0:
                 dl_card_info_list.append(dl_state)
             else:
+                dl_card_info_list.append(dl_state)
                 self.logger.error("| Driving license State name not found")
             
             """Collect DL name"""
             dl_name = self.extract_name()
-            if dl_name:
+            if len(dl_name['coordinates']) != 0:
                 dl_card_info_list.append(dl_name)
             else:
+                dl_card_info_list.append(dl_name)
                 self.logger.error("| Driving license name not found")
 
 
