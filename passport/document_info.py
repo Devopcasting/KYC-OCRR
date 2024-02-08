@@ -47,6 +47,10 @@ class PassportDocumentInfo:
                 matching_line_index_top = i
                 break
         if matching_line_index_top is None:
+            result = {
+                "Passport Number": " ",
+                "coordinates": []
+            }
             return result
         
         """get the top passport number coordinates"""
@@ -60,6 +64,10 @@ class PassportDocumentInfo:
                 passport_number = text
                 break
         if matching_line_index_bottom is None:
+            result = {
+                "Passport Number": " ",
+                "coordinates": []
+            }
             return result
                 
         """get the bottom passport number coordinates"""
@@ -99,6 +107,10 @@ class PassportDocumentInfo:
                 date_text += " "+ text
         
         if not date_coords:
+            result = {
+                "Passport Dates": " ",
+                "coordinates": []
+            }
             return result
         
         """get the first 6 chars"""
@@ -127,13 +139,16 @@ class PassportDocumentInfo:
                 gender_text = text
                 break
         if not gender_coordinates:
+            result = {
+                "Passport Gender": " ",
+                "coordinates": []
+            }
             return result
         
         result = {
-            "Gender": gender_text,
+            "Passport Gender": gender_text,
             "coordinates": [gender_coordinates]
         }
-        
         return result
 
     """func: extract surname"""
@@ -150,6 +165,10 @@ class PassportDocumentInfo:
         """find the line that matches search text"""
         matching_text_index = self.__find_matching_line_index(clean_text, matching_text)
         if matching_text_index == 0:
+            result = {
+                "Passport Surname": " ",
+                "coordinates": []
+            }
             return result
         
         """get the next line in the text"""
@@ -160,6 +179,10 @@ class PassportDocumentInfo:
             else:
                 next_line_list.append(line)
         if not next_line_list:
+            result = {
+                "Passport Surname": " ",
+                "coordinates": []
+            }
             return result
         
         """get the coordinates"""
@@ -174,7 +197,7 @@ class PassportDocumentInfo:
             surname_coordinates.append([i[0], i[1], i[0] + int(0.40 * width), i[3]])
         
         result = {
-            "Surname": surname_text,
+            "Passport Surname": surname_text,
             "coordinates": surname_coordinates
         }
 
@@ -194,6 +217,10 @@ class PassportDocumentInfo:
         """find the line that matches the text"""
         matching_line_index = self.__find_matching_line_index(clean_text, matching_text)
         if matching_line_index == 0:
+            result = {
+                "Passport Given Name": " ",
+                "coordinates": []
+            }
             return result
         
         """get the next line in the text"""
@@ -203,7 +230,12 @@ class PassportDocumentInfo:
                 break
             else:
                 next_line_list.append(line)
+
         if not next_line_list:
+            result = {
+                "Passport Given Name": " ",
+                "coordinates": []
+            }
             return result
         
         """get the coordinates"""
@@ -218,7 +250,7 @@ class PassportDocumentInfo:
             given_name_coordinates.append([i[0], i[1], i[0] + int(0.40 * width), i[3]])
         
         result = {
-            "Given Name": given_name_text,
+            "Passport Given Name": given_name_text,
             "coordinates": given_name_coordinates
         }
 
@@ -238,6 +270,10 @@ class PassportDocumentInfo:
         """find the line that matches the text"""
         matching_line_index = self.__find_matching_line_index(clean_text, matching_text)
         if matching_line_index == 0:
+            result = {
+                "Passport Father Name": " ",
+                "coordinates": []
+            }
             return result
         
         """get the next line in the text"""
@@ -248,6 +284,10 @@ class PassportDocumentInfo:
             else:
                 next_line_list.extend(line.split())
         if not next_line_list:
+            result = {
+                "Passport Father Name": " ",
+                "coordinates": []
+            }
             return result
         
         """get the coordinates"""
@@ -267,7 +307,7 @@ class PassportDocumentInfo:
             father_name_coordinates.append([i[0], i[1], i[0] + int(0.40 * width), i[3]])
         
         result = {
-            "Father Name": father_name_text,
+            "Passport Father Name": father_name_text,
             "coordinates": father_name_coordinates
         }
 
@@ -287,6 +327,10 @@ class PassportDocumentInfo:
         # find the line that matches search text
         matching_line_index = self.__find_matching_line_index(clean_text, matching_text)
         if matching_line_index == 0:
+            result = {
+                "Passport Mother Name": " ",
+                "coordinates": []
+            }
             return result
         
         """get the next line in the text"""
@@ -297,6 +341,10 @@ class PassportDocumentInfo:
             else:
                 next_line_list.extend(line.split())
         if not next_line_list:
+            result = {
+                "Passport Mother Name": " ",
+                "coordinates": []
+            }
             return result
         
         """get the coordinates"""
@@ -316,7 +364,7 @@ class PassportDocumentInfo:
             mother_coordinates.append([i[0], i[1], i[0] + int(0.40 * width), i[3]])
         
         result = {
-            "Mother Name": mother_text,
+            "Passport Mother Name": mother_text,
             "coordinates": mother_coordinates
         }
 
@@ -337,6 +385,10 @@ class PassportDocumentInfo:
                 ind_name_text += " "+text
                 break
         if not ind_name_cords:
+            result = {
+                "Passport IND Name": " ",
+                "coordinates": []
+            }
             return result
         if len(ind_name_cords) > 1:
             ind_name_cords = ind_name_cords[:-1]
@@ -346,7 +398,7 @@ class PassportDocumentInfo:
              ind_name_coordinates.append([i[0], i[1], i[0] + int(0.40 * width), i[3]])
         
         result = {
-            "IND Name": ind_name_text,
+            "Passport IND Name": ind_name_text,
             "coordinates": ind_name_coordinates
         }
         return result
@@ -365,12 +417,17 @@ class PassportDocumentInfo:
                 pincode_number += " "+text
                 break
         
+        if not pincode_coordinates:
+            result = {
+                "Passport Pincode": " ",
+                "coordinates": []
+            }
         for i in pincode_coords:
             width = i[2] - i[0]
             pincode_coordinates.append([i[0], i[1], i[0] + int(0.30 * width), i[3]])
         
         result = {
-            "Pincode": pincode_number,
+            "Passport Pincode": pincode_number,
             "coordinates": pincode_coordinates
         }
 
@@ -387,9 +444,15 @@ class PassportDocumentInfo:
             if text.lower() in self.states:
                 state_coordinates.append([x1, y1, x2, y2])
                 state_name = text
-        
+
+        if not state_coordinates:
+            result = {
+                "Passport Place": " ",
+                "coordinates": []
+            }
+
         result = {
-            "State": state_name,
+            "Passport Place": state_name,
             "coordinates": state_coordinates
         }
 
@@ -411,72 +474,82 @@ class PassportDocumentInfo:
 
             """Collect: Passport Number"""
             passport_number = self.extract_passport_number()
-            if passport_number:
+            if len(passport_number['coordinates']) != 0:
                 passport_doc_info_list.append(passport_number)
             else:
+                passport_doc_info_list.append(passport_number)
                 self.logger.error("| Passport number not found")
             
             """Collect: Dates"""
             passport_dates = self.extract_dates()
-            if passport_dates:
+            if len(passport_dates['coordinates']) != 0:
                 passport_doc_info_list.append(passport_dates)
             else:
+                passport_doc_info_list.append(passport_dates)
                 self.logger.error("| Passport dates not found")
             
             """Collect: Gender"""
             gender = self.extract_gender()
-            if gender:
+            if len(gender['coordinates']) != 0:
                 passport_doc_info_list.append(gender)
             else:
+                passport_doc_info_list.append(gender)
                 self.logger.error("| Passport gender not found")
             
             """Collect: Surname"""
             surname = self.extract_surname()
-            if surname:
+            if len(surname['coordinates']) != 0:
                 passport_doc_info_list.append(surname)
             else:
+                passport_doc_info_list.append(surname)
                 self.logger.error("| Passport surname not found")
             
             """Collect: Given name"""
             given_name = self.extract_given_name()
-            if given_name:
+            if len(given_name['coordinates']) != 0:
                 passport_doc_info_list.append(given_name)
             else:
+                passport_doc_info_list.append(given_name)
                 self.logger.error("| Passport given name not found")
             
             """Collect: Father's name"""
             father_name = self.extract_father_name()
-            if father_name:
+            if len(father_name['coordinates']) != 0:
                 passport_doc_info_list.append(father_name)
             else:
+                passport_doc_info_list.append(father_name)
                 self.logger.error("| Passport father's name not found")
             
             """Collect: Mother's name"""
             mother_name = self.extract_mother_name()
-            if mother_name:
+            if len(mother_name['coordinates']) != 0:
                 passport_doc_info_list.append(mother_name)
             else:
+                passport_doc_info_list.append(mother_name)
                 self.logger.error("| Passport mother name not found")
             
             """Collect: IND name"""
             ind_name = self.extract_ind_name()
-            if ind_name:
+            if len(ind_name['coordinates']) != 0:
                 passport_doc_info_list.append(ind_name)
             else:
+                passport_doc_info_list.append(ind_name)
                 self.logger.error("| Passport IND name not found")
             
             """Collect: Pincode"""
             pincode_number = self.extract_pincode()
-            if pincode_number:
+            if len(pincode_number['coordinates']) != 0:
                 passport_doc_info_list.append(pincode_number)
             else:
+                passport_doc_info_list.append(pincode_number)
                 self.logger.error("| Passport Pincode number not found")
             
             """Collect: State"""
             state = self.extract_state()
-            if state:
+            if len(state['coordinates']) != 0 :
                 passport_doc_info_list.append(state)
             else:
+                passport_doc_info_list.append(state)
                 self.logger.error("| Passport State name not found")
             
             """check passport_doc_info_list"""
