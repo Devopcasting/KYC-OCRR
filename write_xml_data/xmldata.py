@@ -38,7 +38,8 @@ class WriteXMLData:
         for i in self.result_data:
             k_list = i['coordinates']
             for j in k_list:
-                coordinates_list.append(j)
+                if len(j) != 0:
+                    coordinates_list.append(j)
 
         for i in coordinates_list:
             x1, y1, x2, y2 = i
