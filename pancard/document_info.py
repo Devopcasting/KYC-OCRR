@@ -72,11 +72,15 @@ class PancardDocumentInfo:
                     break
 
         if not pancard_coordinates:
+            result = {
+                "Pancard Number": " ",
+                "coordinates": []
+            }
             return result
         
         width = pancard_coordinates[2] - pancard_coordinates[0]
         result = {
-            "PancardNumber": pancard_text,
+            "Pancard Number": pancard_text,
             "coordinates": [[pancard_coordinates[0], pancard_coordinates[1], 
                        pancard_coordinates[0] + int(0.65 * width),pancard_coordinates[3]]]
         }
@@ -99,26 +103,41 @@ class PancardDocumentInfo:
                 dob_text = text
                 break
         if not dob_coordinates:
-            return result
-        
-        """Validate the date format"""
-        date_seprator = ''
-        if '-' in dob_text:
-            date_seprator = '-'
-        else:
-            date_seprator = '/'
-
-        if self.validate_date(dob_text, date_seprator):
-
-            """Get first 6 chars"""
-            width = dob_coordinates[2] - dob_coordinates[0]
             result = {
-                "DOB": dob_text,
-                "coordinates": [[dob_coordinates[0], dob_coordinates[1], dob_coordinates[0] + int(0.54 * width), dob_coordinates[3]]]
+                "Pancard DOB": " ",
+                "coordinates": []
             }
             return result
-        else:
-            return result
+        
+        """Get first 6 chars"""
+        width = dob_coordinates[2] - dob_coordinates[0]
+        result = {
+            "Pancard DOB": dob_text,
+            "coordinates": [[dob_coordinates[0], dob_coordinates[1], dob_coordinates[0] + int(0.54 * width), dob_coordinates[3]]]
+        }
+        return result
+        # """Validate the date format"""
+        # date_seprator = ''
+        # if '-' in dob_text:
+        #     date_seprator = '-'
+        # else:
+        #     date_seprator = '/'
+
+        # if self.validate_date(dob_text, date_seprator):
+
+        #     """Get first 6 chars"""
+        #     width = dob_coordinates[2] - dob_coordinates[0]
+        #     result = {
+        #         "Pancard DOB": dob_text,
+        #         "coordinates": [[dob_coordinates[0], dob_coordinates[1], dob_coordinates[0] + int(0.54 * width), dob_coordinates[3]]]
+        #     }
+        # else:
+        #     result = {
+        #         "Pancard DOB": " ",
+        #         "coordinates": []
+        #     }
+
+        #return result
 
     """func: extract signature"""
     def extract_signature(self, pattern_no):
@@ -137,10 +156,14 @@ class PancardDocumentInfo:
                     break
             
             if not signature_coordinates:
+                result = {
+                "Pancard Signature": " ",
+                "coordinates": []
+                }
                 return result
             
             result = {
-                "Signature": "User Signature",
+                "Pancard Signature": "User Signature",
                 "coordinates": signature_coordinates
             }
             return result
@@ -155,10 +178,14 @@ class PancardDocumentInfo:
                     break
             
             if not signature_coordinates:
+                result = {
+                "Pancard Signature": " ",
+                "coordinates": []
+                }
                 return result
             
             result = {
-                "Signature": "User Signature",
+                "Pancard Signature": "User Signature",
                 "coordinates": signature_coordinates
             }
 
@@ -209,16 +236,18 @@ class PancardDocumentInfo:
 
             """Collect: Pancard Number"""
             pancard_number = self.extract_pancard_number()
-            if pancard_number:
+            if len(pancard_number['coordinates']) != 0:
                 pancard_doc_info_list.append(pancard_number)
             else:
+                pancard_doc_info_list.append(pancard_number)
                 self.logger.error("| Pancard Number not found")
 
             """Collect: DOB"""
             dob = self.extract_dob()
-            if dob:
+            if len(dob['coordinates']) != 0:
                 pancard_doc_info_list.append(dob)
             else:
+                pancard_doc_info_list.append(dob)
                 self.logger.error("| Pancard DOB not found")
             
             """Collect: Pancard username and father's name"""
@@ -230,44 +259,50 @@ class PancardDocumentInfo:
                 username_p1 = PanCardPattern1(self.coordinates, self.text_data, matching_text_keyword_username, 1).extract_username_fathername_p1()
                 fathername_p1 = PanCardPattern1(self.coordinates, self.text_data, matching_text_keyword_fathername, 2).extract_username_fathername_p1()
 
-                if username_p1:
+                if len(username_p1['coordinates']) != 0:
                     pancard_doc_info_list.append(username_p1)
                 else:
+                    pancard_doc_info_list.append(username_p1)
                     self.logger.error("| Pancard Username not found")
 
-                if fathername_p1:
+                if len(fathername_p1['coordinates']) != 0:
                     pancard_doc_info_list.append(fathername_p1)
                 else:
+                    pancard_doc_info_list.append(fathername_p1)
                     self.logger.error("| Pancard Father's name not found")
                 
             else:
                 username_p2 = PanCardPattern2(self.coordinates, self.text_data, 1).extract_username_p2()
                 fathername_p2 = PanCardPattern2(self.coordinates, self.text_data, 2).extract_fathername_p2()
                 
-                if username_p2:
+                if len(username_p2['coordinates']) != 0:
                     pancard_doc_info_list.append(username_p2)
                 else:
+                    pancard_doc_info_list.append(username_p2)
                     self.logger.error("| Pancard Username not found")
 
-                if fathername_p2:
+                if len(fathername_p2['coordinates']) != 0:
                     pancard_doc_info_list.append(fathername_p2)
                 else:
+                    pancard_doc_info_list.append(fathername_p2)
                     self.logger.error("| Pancard Father's name not found")
             
             """Collect: Signature"""
             if pattern_number == 1:
                 user_signature = self.extract_signature(1)
 
-                if user_signature:
+                if len(user_signature['coordinates']) != 0:
                     pancard_doc_info_list.append(user_signature)
                 else:
+                    pancard_doc_info_list.append(user_signature)
                     self.logger.error("| Pancard Signature not found")
             else:
                 user_signature = self.extract_signature(2)
 
-                if user_signature:
+                if len(user_signature['coordinates']) != 0:
                     pancard_doc_info_list.append(user_signature)
                 else:
+                    pancard_doc_info_list.append(user_signature)
                     self.logger.error("| Pancard Signature not found")
 
             """check pancard_doc_info_list"""

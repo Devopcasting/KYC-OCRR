@@ -8,9 +8,9 @@ class PanCardPattern1:
         self.index_num = index_num
         
         if self.index_num == 1:
-            self.LABEL_NAME = "Name"
+            self.LABEL_NAME = "Pancard Username"
         else:
-            self.LABEL_NAME = "Father's Name"
+            self.LABEL_NAME = "Pancard Father's Name"
     
     """func: extract username"""
     def extract_username_fathername_p1(self):
@@ -23,6 +23,10 @@ class PanCardPattern1:
         """find the matching text index"""
         matching_text_index = self.__find_matching_text_index_username(lines, self.matching_text_keyword)
         if matching_text_index == 404:
+            result = {
+                f"{self.LABEL_NAME}": " ",
+                "coordinates": []
+            }
             return result
         
         """get the next line of matching index"""
