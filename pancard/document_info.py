@@ -39,7 +39,7 @@ class PancardDocumentInfo:
         pancard_text = ""
         pancard_coordinates = []
         matching_text_index = None
-        matching_text_regex = r"\b(?:permanent|pe@fanent|pe@ffignent|pertianent|account|number|card|perenent|accoun|pormanent)\b"
+        matching_text_regex = r"\b(?:permanent|pe@fanent|pe@ffignent|pertianent|account|number|card|perenent|accoun|pormanent|petraancnt)\b"
 
         """find matching text pattern"""
         for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
@@ -56,7 +56,7 @@ class PancardDocumentInfo:
                     break
                 elif len(text) == 10 and text.isalnum():
                     pancard_coordinates = [x1, y1, x2, y2]
-                    pancard_text = text.capitalize
+                    pancard_text = text.capitalize()
                     break          
         else:
             """find pancard using matching pattern text index"""
@@ -68,7 +68,7 @@ class PancardDocumentInfo:
                     break
                 elif len(text) == 10 and text.isalnum():
                     pancard_coordinates = [self.coordinates[i][0], self.coordinates[i][1], self.coordinates[i][2], self.coordinates[i][3]]
-                    pancard_text = text.capitalize
+                    pancard_text = text.capitalize()
                     break
 
         if not pancard_coordinates:
@@ -85,7 +85,6 @@ class PancardDocumentInfo:
                        pancard_coordinates[0] + int(0.65 * width),pancard_coordinates[3]]]
         }
         return result
-
 
     """func: extract dob"""
     def extract_dob(self):
@@ -315,14 +314,14 @@ class PancardDocumentInfo:
 
             """Collect: Pancard Number"""
             pancard_number = self.extract_pancard_number()
-            if not pancard_number:
+            if len(pancard_number['coordinates']) == 0:
                 self.logger.error("| Pancard Number not found")
                 return {"message": "Unable to extract Pancard Number", "status": "REJECTED"}
             pancard_doc_info_list.append(pancard_number)
 
             """Collect: DOB"""
             dob = self.extract_dob()
-            if not dob:
+            if len(dob['coordinates']) == 0:
                 self.logger.error("| Pancard DOB not found")
                 return {"message": "Unable to extract DOB from Pancard Document", "status": "REJECTED"}
             pancard_doc_info_list.append(dob)
@@ -336,21 +335,27 @@ class PancardDocumentInfo:
                 username_p1 = PanCardPattern1(self.coordinates, self.text_data, matching_text_keyword_username, 1).extract_username_fathername_p1()
                 fathername_p1 = PanCardPattern1(self.coordinates, self.text_data, matching_text_keyword_fathername, 2).extract_username_fathername_p1()
             
-                if username_p1 and fathername_p1:
-                    pancard_doc_info_list.append(username_p1)
-                    pancard_doc_info_list.append(fathername_p1)
-                else:
-                    self.logger.error("| Pancard Username or Father name not found")
-                    return {"message": "Unable to extract Username or Father's name from Pancard document", "status": "REJECTED"}
+                if len(username_p1['coordinates']) == 0:
+                    self.logger.error("| Pancard Username  not found")
+                    return {"message": "Unable to extract Username from Pancard document", "status": "REJECTED"}
+                pancard_doc_info_list.append(username_p1)
+
+                if len(fathername_p1['coordinates']) == 0:
+                    self.logger.error("| Pancard Father's name  not found")
+                    return {"message": "Unable to extract Father's name from Pancard document", "status": "REJECTED"}
+                pancard_doc_info_list.append(fathername_p1)
             else:
                 username_p2 = PanCardPattern2(self.coordinates, self.text_data, 1).extract_username_p2()
                 fathername_p2 = PanCardPattern2(self.coordinates, self.text_data, 2).extract_fathername_p2()
 
-                if username_p2 and fathername_p2:
-                    pancard_doc_info_list.append(username_p2)
-                    pancard_doc_info_list.append(fathername_p2)
-                else:
-                    self.logger.error("| Pancard Username or Father name not found")
-                    return {"message": "Unable to extract Username or Father's name from Pancard document", "status": "REJECTED"}
+                if len(username_p2['coordinates']) == 0:
+                    self.logger.error("| Pancard Username  not found")
+                    return {"message": "Unable to extract Username from Pancard document", "status": "REJECTED"}
+                pancard_doc_info_list.append(username_p2)
 
+                if len(fathername_p2['coordinates']) == 0:
+                    self.logger.error("| Pancard Father's name  not found")
+                    return {"message": "Unable to extract Father's name from Pancard document", "status": "REJECTED"}
+                pancard_doc_info_list.append(fathername_p2)
+                    
                 return {"message": "Successfully Redacted PAN Card Document", "status": "REDACTED", "data": pancard_doc_info_list}
