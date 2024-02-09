@@ -439,56 +439,59 @@ class EaadhaarCardInfo:
 
             """Collect: Name in regional"""
             name_in_regional = self.extract_name_in_regional()
-            if not name_in_regional:
+            if len(name_in_regional['coordinates']) == 0:
                 self.logger.error("| E-Aadhaar Card Name in regional language not found")
                 return {"message": "Unable to extract name in regional from E-Aadhaar Document", "status": "REJECTED"}
             eaadhaarcard_doc_info_list.append(name_in_regional)
 
             """Collect: Name in english"""
             name_in_english = self.extract_name_in_english()
-            if not name_in_english:
+            if len(name_in_english['coordinates']) == 0:
                 self.logger.error("| E-Aadhaar Card Name in english not found")
                 return {"message": "Unable to extract name in english from E-Aaadhaar Document", "status": "REJECTED"}
             eaadhaarcard_doc_info_list.append(name_in_english)
 
             """Collect: DOB"""
             dob = self.extract_dob()
-            if not dob:
+            if len(dob['coordinates']) == 0:
                 self.logger.error("| E-Aadhaar Card DOB not found")
                 return {"message": "Unable to extract DOB from E-Aadhaar Document", "status": "REJECTED"}
             eaadhaarcard_doc_info_list.append(dob)
 
             """Collect: Gender"""
             gender = self.extract_gender()
-            if not gender:
+            if len(gender['coordinates']) == 0:
                 self.logger.error("| E-Aadhaar Card Gender not found")
                 return {"message": "Unable to extract gender from E-Aadhaar Document", "status": "REJECTED"}
             eaadhaarcard_doc_info_list.append(gender)
 
             """Collect: Aadhaar Card Number"""
             aadhaarcard_number = self.extract_aadhaarcard_number()
-            if not aadhaarcard_number:
+            if len(aadhaarcard_number['coordinates']) == 0:
                 self.logger.error("| E-Aadhaar Card Number not found")
                 return {"message": "Unable to extract aadhaar card number", "status": "REJECTED"}
             eaadhaarcard_doc_info_list.append(aadhaarcard_number)
 
             """Collect: Mobile Number"""
             mobile_number = self.extract_mobile_number()
-            if mobile_number:
-                eaadhaarcard_doc_info_list.append(mobile_number)
+            if len(mobile_number['coordinates']) == 0:
+                self.logger.error("| E-Aadhaar Mobile Number not found")
+                return {"message": "Unable to extract aadhaar mobile number", "status": "REJECTED"}
+            eaadhaarcard_doc_info_list.append(mobile_number)
 
             """Collect: Pin Code"""
             pincode = self.extract_pin_code()
-            if pincode:
-                eaadhaarcard_doc_info_list.append(pincode)
+            if len(pincode['coordinates']) == 0:
+                self.logger.error("| E-Aadhaar Card Pincode not found")
+                return {"message": "Unable to extract aadhaar pincode", "status": "REJECTED"}
+            eaadhaarcard_doc_info_list.append(pincode)
             
             """Collect: QR Code"""
             qr_code = self.extract_qr_code()
-            if qr_code:
-                eaadhaarcard_doc_info_list.append(qr_code)
-            else:
+            if len(qr_code['coordinates']) == 0:
                 self.logger.error("| E-Aadhaar QR-Code not found")
                 return {"message": "Unable to extract aadhaar QR-Code", "status": "REJECTED"}
 
+            eaadhaarcard_doc_info_list.append(qr_code)
         
             return {"message": "Successfully Redacted E-Aadhaar Card Document", "status": "REDACTED", "data": eaadhaarcard_doc_info_list}

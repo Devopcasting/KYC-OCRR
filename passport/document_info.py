@@ -562,68 +562,72 @@ class PassportDocumentInfo:
 
             """Collect: Passport Number"""
             passport_number = self.extract_passport_number()
-            if not passport_number:
+            if len(passport_number['coordinates']) == 0:
                 self.logger.error("| Passport number not found")
                 return {"message": "Unable to extract passport number", "status": "REJECTED"}
             passport_doc_info_list.append(passport_number)
  
             """Collect: Dates"""
             passport_dates = self.extract_dates()
-            if not passport_dates:
+            if len(passport_dates['coordinates']) == 0:
                 self.logger.error("| Passport dates not found")
                 return {"message": "Unable to extract dates from passport document", "status": "REJECTED"}
             passport_doc_info_list.append(passport_dates)
         
             """Collect: Gender"""
             gender = self.extract_gender()
-            if not gender:
+            if len(gender['coordinates']) == 0:
                 self.logger.error("| Passport gender not found")
                 return {"message": "Unable to extract gender from passport", "status": "REJECTED"}
             passport_doc_info_list.append(gender)
 
             """Collect: Surname"""
             surname = self.extract_surname()
-            if not surname:
+            if len(surname['coordinates']) == 0:
                 self.logger.error("| Passport surname not found")
                 return {"message": "Unable to extract surname from passport document", "status": "REJECTED"}
             passport_doc_info_list.append(surname)
 
             """Collect: Given name"""
             given_name = self.extract_given_name()
-            if not given_name:
+            if len(given_name["coordinates"]) == 0:
                 self.logger.error("| Passport given name not found")
                 return {"message": "Unable to extract given name from passport", "status": "REJECTED"}
             passport_doc_info_list.append(given_name)
 
             """Collect: Father's name"""
             father_name = self.extract_father_name()
-            if not father_name:
+            if len(father_name["coordinates"]) == 0:
                 self.logger.error("| Passport father's name not found")
                 return {"message": "Unable to extract father's name from passport", "status": "REJECTED"}
             passport_doc_info_list.append(father_name)
 
             """Collect: Mother's name"""
             mother_name = self.extract_mother_name()
-            if not mother_name:
+            if len(mother_name["coordinates"]) == 0:
                 self.logger.error("| Passport mother name not found")
                 return {"message": "Unable to extract mother name", "status": "REJECTED"}
             passport_doc_info_list.append(mother_name)
 
             """Collect: IND name"""
             ind_name = self.extract_ind_name()
-            if not ind_name:
+            if len(ind_name["coordinates"]) == 0:
                 self.logger.error("| Passport IND name not found")
                 return {"message": "Unable to extract IND name from Passport", "status": "REJECTED"}
             passport_doc_info_list.append(ind_name)
 
             """Collect: Pincode"""
             pincode_number = self.extract_pincode()
-            if pincode_number:
-                passport_doc_info_list.append(pincode_number)
+            if len(pincode_number['coordinates']) == 0:
+                self.logger.error("| Passport Pincode not found")
+                return {"message": "Unable to extract Pincode from Passport", "status": "REJECTED"}
+            passport_doc_info_list.append(pincode_number)
 
             """Collect: State"""
             state = self.extract_state()
-            if state:
-                passport_doc_info_list.append(state)
+            if len(state['coordinates']) == 0:
+                self.logger.error("| Passport Place name not found")
+                return {"message": "Unable to extract Place name from Passport", "status": "REJECTED"}
+            passport_doc_info_list.append(state)
 
             return {"message": "Successfully Redacted Passport Document", "status": "REDACTED", "data": passport_doc_info_list}
