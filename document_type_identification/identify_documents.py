@@ -26,7 +26,7 @@ class DocumentTypeIdentification:
         """Pancard identification object"""
         self.pancard_obj = IdentifyPanCard(clean_text_data)
 
-        """Aadhaarcard identification object"""
+        """E-Aadhaarcard identification object"""
         self.aadhaarcard_obj = IdentifyAadhaarCard(clean_text_data)
 
         """Passport identification object"""
@@ -42,6 +42,16 @@ class DocumentTypeIdentification:
     
     def identify_eaadhaarcard(self) -> bool:
         if self.aadhaarcard_obj.check_e_aadhaar_card():
+            return True
+        return False
+    
+    def identify_aadhaarcard_format(self) -> bool:
+        if self.aadhaarcard_obj.check_aadhaar_card_format():
+            return True
+        return False
+    
+    def identify_aadhaar_card(self) -> bool:
+        if self.aadhaarcard_obj.check_aadhaarcard():
             return True
         return False
     
