@@ -2,6 +2,7 @@ from config.database import MongoDBConnection
 from document_type_identification.identify_documents import DocumentTypeIdentification
 from pancard.document_info import PancardDocumentInfo
 from aadhaarcard.eaadhaarcard_info import EaadhaarCardInfo
+from aadhaarcard.aadhaarcard_info import AaadhaarCardInfo
 from passport.document_info import PassportDocumentInfo
 from drivingl.document_info import DrivingLicenseDocumentInfo
 from write_xml_data.xmldata import WriteXMLData
@@ -27,9 +28,17 @@ class PerformOCRROnDocument:
             self.process_pancard(self.document_info['documentPath'], self.document_info['redactedPath'],
                                  self.document_info['documentName'], self.document_info['taskId'])
             """Identify E-Aadhaar"""
-        elif document_identification_obj.identify_eaadhaarcard():
-            self.process_e_aadhaarcard(self.document_info['documentPath'], self.document_info['redactedPath'],
+        elif document_identification_obj.identify_aadhaarcard_format():
+            if document_identification_obj.identify_eaadhaarcard():
+                self.process_e_aadhaarcard(self.document_info['documentPath'], self.document_info['redactedPath'],
                                  self.document_info['documentName'], self.document_info['taskId'])
+            elif document_identification_obj.identify_aadhaar_card():
+                self.process_aadhaarcard(self.document_info['documentPath'], self.document_info['redactedPath'],
+                                 self.document_info['documentName'], self.document_info['taskId'])
+            else:
+                 self.unidentified_document_rejected(self.document_info['documentPath'], self.document_info['redactedPath'],
+                                 self.document_info['documentName'], self.document_info['taskId'])
+
             """Identify Passport"""
         elif document_identification_obj.identify_passport():
             self.process_passport(self.document_info['documentPath'], self.document_info['redactedPath'],
@@ -71,6 +80,27 @@ class PerformOCRROnDocument:
     """Process: E-aadhaarcard Document """
     def process_e_aadhaarcard(self, document_path, redactedPath, documentName, taskid ):
         result = EaadhaarCardInfo(document_path).collect_eaadhaarcard_info()
+        status = result['status']
+        if status == "REJECTED":
+            """Redact 75% and get the coordinates"""
+            rejected_doc_coordinates = RedactRejectedDocument(document_path).rejected()
+            RejectedWriteXML(redactedPath, documentName, rejected_doc_coordinates).writexml()
+            """Update upload db"""
+            self.update_upload_filedetails(taskid, "REJECTED", result['message'])
+        else:
+            """Write Redacted Document XML file"""
+            redacted_doc_coordinates = result['data']
+            WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).writexmldata()
+            WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).write_redacted_data_xml()
+            """Update upload db"""
+            self.update_upload_filedetails(taskid, "REDACTED", result['message'])
+        
+        """Remove document from workspace"""
+        self.remove_document_from_workspace(document_path)
+
+    """Process: Aadhaarcard Document"""
+    def process_aadhaarcard(self, document_path, redactedPath, documentName, taskid):
+        result = AaadhaarCardInfo(document_path).collect_aadhaarcard_info()
         status = result['status']
         if status == "REJECTED":
             """Redact 75% and get the coordinates"""
