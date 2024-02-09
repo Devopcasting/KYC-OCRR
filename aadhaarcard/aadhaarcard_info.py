@@ -21,14 +21,11 @@ class AaadhaarCardInfo:
         """Get coordinates"""
         self.coordinates_default = TextCoordinates(document_path, lang_type="default").generate_text_coordinates()
         self.coordinates_regional = TextCoordinates(document_path, lang_type="regional").generate_text_coordinates()
-        print(self.coordinates_regional)
-        #print(self.coordinates_default)
 
         """Get String"""
+        tesseract_config = r'--oem 3 --psm 11'
         self.text_data_default = pytesseract.image_to_string(document_path)
-        self.text_data_regional = pytesseract.image_to_string(document_path, lang="hin+eng")
-        print(self.text_data_regional)
-        #print(self.text_data_default)
+        self.text_data_regional = pytesseract.image_to_string(document_path, lang="hin+eng", config=tesseract_config)
 
     """func: extract DOB"""
     def extract_dob(self):
@@ -124,6 +121,107 @@ class AaadhaarCardInfo:
             "coordinates": aadhaarcard_coordinates
         }
         return result
+    
+    """func: extract name"""
+    def extract_name(self):
+        result = {}
+        name_text = ""
+        name_coordinates = []
+
+        """split the text into lines"""
+        lines = [i for i in self.text_data_default.splitlines() if len(i) != 0]
+        
+        """regex patterns"""
+        dob_pattern = re.compile(r"DOB", re.IGNORECASE)
+        date_pattern = re.compile(r"\d{1,2}/\d{1,2}/\d{4}")
+        year_pattern = re.compile(r"\d{4}")
+
+        """get the matching text index"""
+        for i, item in enumerate(lines):
+            if dob_pattern.search(item) or date_pattern.search(item) or year_pattern.search(item):
+                name_text = lines[i - 1]
+                break
+        if not name_text:
+            result = {
+                "Aadhaar Name": "",
+                "coordinates": []
+            }
+            return result
+        
+        """split the name"""
+        name_text_split = name_text.split()
+        if len(name_text_split) > 1:
+            name_text_split = name_text_split[:-1]
+        
+        """get the coordinates"""
+        for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates_default):
+            if text in name_text_split:
+                name_coordinates.append([x1, y1, x2, y2])
+            if len(name_text_split) == name_coordinates:
+                break
+        
+        if len(name_text_split) > 1:
+            result = {
+                "Aadhaar Name": name_text,
+                "coordinates": [[name_coordinates[0][0], name_coordinates[0][1], name_coordinates[-1][2], name_coordinates[-1][3]]]
+            }
+        else:
+            result = {
+                "Aadhaar Name": name_text,
+                "coordinates": [[name_coordinates[0][0], name_coordinates[0][1], name_coordinates[0][2], name_coordinates[0][3]]]
+            }
+        return result
+
+    """func: extract name in regional lang"""
+    def extract_name_in_regional(self):
+        result = {}
+        name_text = ""
+        name_coordinates = []
+
+        result = {}
+        name_text = ""
+        name_coordinates = []
+
+        """split the text into lines"""
+        lines = [i for i in self.text_data_regional.splitlines() if len(i) != 0]
+
+        """get the matching text index"""
+        gender_pattern = r"male|female"
+        for i, item in enumerate(lines):
+            if re.search(gender_pattern, item, flags=re.IGNORECASE):
+                name_text = lines[i - 2]
+                break
+        if not name_text:
+            result = {
+                "Aadhaar Name": "",
+                "coordinates": []
+            }
+            return result
+        
+        """split the name"""
+        name_text_split = name_text.split()
+        if len(name_text_split) > 1:
+            name_text_split = name_text_split[:-1]
+        
+        """get the coordinates"""
+        for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates_regional):
+            if text in name_text_split:
+                name_coordinates.append([x1, y1, x2, y2])
+            if len(name_text_split) == name_coordinates:
+                break
+        
+        if len(name_text_split) > 1:
+            result = {
+                "Aadhaar Name": name_text,
+                "coordinates": [[name_coordinates[0][0], name_coordinates[0][1], name_coordinates[-1][2], name_coordinates[-1][3]]]
+            }
+        else:
+            result = {
+                "Aadhaar Name": name_text,
+                "coordinates": [[name_coordinates[0][0], name_coordinates[0][1], name_coordinates[0][2], name_coordinates[0][3]]]
+            }
+        return result
+
 
     """func: collect aadhaar card info"""
     def collect_aadhaarcard_info(self) -> dict:
@@ -155,9 +253,23 @@ class AaadhaarCardInfo:
             else:
                 self.logger.error("| Aadhaar Card Number not found")
                 aadhaarcard_doc_info_list.append(aadhaar_card_number)
+            
+            """Collect: Name"""
+            name = self.extract_name()
+            if len(name['coordinates']) != 0:
+                aadhaarcard_doc_info_list.append(name)
+            else:
+                self.logger.error("| Aadhaar Card name not found")
+                aadhaarcard_doc_info_list.append(name)
 
+            """Collect: Name in Regional lang"""
+            regional_name = self.extract_name_in_regional()
+            if len(regional_name['coordinates']) != 0:
+                aadhaarcard_doc_info_list.append(regional_name)
+            else:
+                self.logger.error("| Aadhaar Card name in regional language not found")
+                aadhaarcard_doc_info_list.append(regional_name)
 
-            print(aadhaarcard_doc_info_list)
             """"check eaadhaarcard_doc_info_list"""
             if len(aadhaarcard_doc_info_list) == 0:
                 return {"message": "Unable to extract Aadhaar information", "status": "REJECTED"}
@@ -188,9 +300,23 @@ class AaadhaarCardInfo:
             else:
                 self.logger.error("| Aadhaar Card Number not found")
                 return {"message": "Unable to extract Aadhaar Number", "status": "REJECTED"}
-
-            print(aadhaarcard_doc_info_list)
-           
+            
+            """Collect: Name"""
+            name = self.extract_name()
+            if len(name['coordinates']) != 0:
+                aadhaarcard_doc_info_list.append(name)
+            else:
+                self.logger.error("| Aadhaar Card name not found")
+                return {"message": "Unable to extract Aadhaar Name", "status": "REJECTED"}
+            
+            """Collect: Name in Regional lang"""
+            regional_name = self.extract_name_in_regional()
+            if len(regional_name['coordinates']) != 0:
+                aadhaarcard_doc_info_list.append(regional_name)
+            else:
+                self.logger.error("| Aadhaar Card name in regional language not found")
+                return {"message": "Unable to extract Aadhaar Name in regional language", "status": "REJECTED"}
+            
             return {"message": "Successfully Redacted Aadhaar Card Document", "status": "REDACTED", "data": aadhaarcard_doc_info_list}
 
 
