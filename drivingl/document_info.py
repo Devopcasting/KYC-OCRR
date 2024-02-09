@@ -245,29 +245,37 @@ class DrivingLicenseDocumentInfo:
         
             """Collect DL number"""
             dl_number = self.extract_dl_number()
-            if not dl_number:
+            if len(dl_number['coordinates']) == 0:
                 self.logger.error("| Driving license number not found")
                 return {"message": "Unable to extract driving license number", "status": "REJECTED"}
             dl_card_info_list.append(dl_number)
 
             """Collect DL dates"""
             dl_dates = self.extract_dates()
-            if dl_dates:
-                dl_card_info_list.append(dl_dates)
+            if len(dl_dates['coordinates']) == 0:
+                self.logger.error("| Driving license dates not found")
+                return {"message": "Unable to extract dates from license number", "status": "REJECTED"}
+            dl_card_info_list.append(dl_dates)
         
             """Collect DL pincode"""
             dl_pincode = self.extract_pincode()
-            if dl_pincode:
-                dl_card_info_list.append(dl_pincode)
+            if len(dl_pincode["coordinates"]) == 0:
+                self.logger.error("| Driving license pincode not found")
+                return {"message": "Unable to extract pincode from driving license number", "status": "REJECTED"}
+            dl_card_info_list.append(dl_pincode)
 
             """Collect DL State"""
             dl_state = self.extract_state()
-            if dl_state:
-                dl_card_info_list.append(dl_state)
+            if len(dl_state['coordinates']) == 0:
+                self.logger.error("| Driving license place not found")
+                return {"message": "Unable to extract place from driving license number", "status": "REJECTED"}
+            dl_card_info_list.append(dl_state)
 
             """Collect DL name"""
             dl_name = self.extract_name()
-            if dl_name:
-                dl_card_info_list.append(dl_name)
+            if len(dl_name['coordinates']) == 0:
+                self.logger.error("| Driving license name not found")
+                return {"message": "Unable to extract name from driving license number", "status": "REJECTED"}
+            dl_card_info_list.append(dl_name)
 
             return {"message": "Successfully Redacted Driving License Document", "status": "REDACTED", "data": dl_card_info_list}
