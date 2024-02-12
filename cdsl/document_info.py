@@ -81,7 +81,7 @@ class CDSLInfo:
                 next_line.remove(i)
 
         name_text = " ".join(next_line)
-        
+
         if len(next_line) > 1:
             next_line = next_line[:-1]                
 
@@ -127,7 +127,6 @@ class CDSLInfo:
                 cdsl_doc_info_list.append(cdsl_name)
                 self.logger.error("| CDSL Name not found")
 
-            print(cdsl_doc_info_list)
             """check cdsl_doc_info_list"""
             if len(cdsl_doc_info_list) == 0:
                 return {"message": "Unable to extract CDSL information", "status": "REJECTED"}
