@@ -5,6 +5,7 @@ from aadhaarcard.eaadhaarcard_info import EaadhaarCardInfo
 from aadhaarcard.aadhaarcard_info import AaadhaarCardInfo
 from passport.document_info import PassportDocumentInfo
 from drivingl.document_info import DrivingLicenseDocumentInfo
+from cdsl.document_info import CDSLInfo
 from write_xml_data.xmldata import WriteXMLData
 from write_xml_data.rejected_xmldata import RejectedWriteXML
 from rejected_doc_redacted.redact_rejected_document import RedactRejectedDocument
@@ -45,6 +46,9 @@ class PerformOCRROnDocument:
                                  self.document_info['documentName'], self.document_info['taskId'])
         elif document_identification_obj.identify_dl():
             self.process_dl(self.document_info['documentPath'], self.document_info['redactedPath'],
+                                 self.document_info['documentName'], self.document_info['taskId'])
+        elif document_identification_obj.identify_cdsl():
+            self.process_cdsl(self.document_info['documentPath'], self.document_info['redactedPath'],
                                  self.document_info['documentName'], self.document_info['taskId'])
         else:
             self.unidentified_document_rejected(self.document_info['documentPath'], self.document_info['redactedPath'],
@@ -163,7 +167,28 @@ class PerformOCRROnDocument:
         
         """Remove document from workspace"""
         self.remove_document_from_workspace(document_path)
+    
+    """Process: CDSL Document"""
+    def process_cdsl(self, document_path, redactedPath, documentName, taskid):
+        result = CDSLInfo(document_path).collect_cdsl_info()
+        status = result['status']
 
+        if status == "REJECTED":
+            """Redact 75% and get the coordinates"""
+            rejected_doc_coordinates = RedactRejectedDocument(document_path).rejected()
+            RejectedWriteXML(redactedPath, documentName, rejected_doc_coordinates).writexml()
+            """Update upload db"""
+            self.update_upload_filedetails(taskid, "REJECTED", result['message'])
+        else:
+            """Write Redacted Document XML file"""
+            redacted_doc_coordinates = result['data']
+            WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).writexmldata()
+            WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).write_redacted_data_xml()
+            """Update upload db"""
+            self.update_upload_filedetails(taskid, "REDACTED", result['message'])
+        
+        """Remove document from workspace"""
+        self.remove_document_from_workspace(document_path)
 
 
 
