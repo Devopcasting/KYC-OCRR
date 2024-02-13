@@ -46,7 +46,7 @@ class ProcessDocuments:
                         "rejectedPath": self.upload_path+"\\"+document_name_prefix.split('+')[0]+"\\"+document_name_prefix.split('+')[1]+"\\"+"Rejected",
                         "redactedPath": self.upload_path+"\\"+document_name_prefix.split('+')[0]+"\\"+document_name_prefix.split('+')[1]+"\\"+"Redacted"
                     }
-                perform_ocrr = PerformOCRROnDocument(document_info_dict).ocrr_docs()
+                PerformOCRROnDocument(document_info_dict).ocrr_docs()
             sleep(5)
     
     def pre_process_docs(self, jpeg_path: str, renamed_doc_name: str):
