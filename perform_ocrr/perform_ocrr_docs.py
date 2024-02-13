@@ -60,68 +60,76 @@ class PerformOCRROnDocument:
         """Send Post request to webhook"""
         #self.webhook_post_request(self.document_info['taskId'])
     
+    
     """Process: Pancard Document"""
     def process_pancard(self, document_path, redactedPath, documentName, taskid):
         result = PancardDocumentInfo(document_path).collect_pancard_info()
         status = result['status']
-        if status == "REJECTED":
-            """Redact 75% and get the coordinates"""
-            rejected_doc_coordinates = RedactRejectedDocument(document_path).rejected()
-            RejectedWriteXML(redactedPath, documentName, rejected_doc_coordinates).writexml()
-            """Update upload db"""
-            self.update_upload_filedetails(taskid, "REJECTED", result['message'])
-        else:
-            """Write Redacted Document XML file"""
-            redacted_doc_coordinates = result['data']
-            WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).writexmldata()
-            WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).write_redacted_data_xml()
-            """Update upload db"""
-            self.update_upload_filedetails(taskid, "REDACTED", result['message'])
+
+        self.perform_ocrr_on_docs(status, result, document_path, redactedPath, documentName, taskid)
+
+        # if status == "REJECTED":
+        #     """Redact 75% and get the coordinates"""
+        #     rejected_doc_coordinates = RedactRejectedDocument(document_path).rejected()
+        #     RejectedWriteXML(redactedPath, documentName, rejected_doc_coordinates).writexml()
+        #     """Update upload db"""
+        #     self.update_upload_filedetails(taskid, "REJECTED", result['message'])
+        # else:
+        #     """Write Redacted Document XML file"""
+        #     redacted_doc_coordinates = result['data']
+        #     WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).writexmldata()
+        #     WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).write_redacted_data_xml()
+        #     """Update upload db"""
+        #     self.update_upload_filedetails(taskid, "REDACTED", result['message'])
         
-        """Remove document from workspace"""
-        self.remove_document_from_workspace(document_path)
+        # """Remove document from workspace"""
+        # self.remove_document_from_workspace(document_path)
 
     """Process: E-aadhaarcard Document """
     def process_e_aadhaarcard(self, document_path, redactedPath, documentName, taskid ):
         result = EaadhaarCardInfo(document_path).collect_eaadhaarcard_info()
         status = result['status']
-        if status == "REJECTED":
-            """Redact 75% and get the coordinates"""
-            rejected_doc_coordinates = RedactRejectedDocument(document_path).rejected()
-            RejectedWriteXML(redactedPath, documentName, rejected_doc_coordinates).writexml()
-            """Update upload db"""
-            self.update_upload_filedetails(taskid, "REJECTED", result['message'])
-        else:
-            """Write Redacted Document XML file"""
-            redacted_doc_coordinates = result['data']
-            WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).writexmldata()
-            WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).write_redacted_data_xml()
-            """Update upload db"""
-            self.update_upload_filedetails(taskid, "REDACTED", result['message'])
+
+        self.perform_ocrr_on_docs(status, result, document_path, redactedPath, documentName, taskid)
+        # if status == "REJECTED":
+        #     """Redact 75% and get the coordinates"""
+        #     rejected_doc_coordinates = RedactRejectedDocument(document_path).rejected()
+        #     RejectedWriteXML(redactedPath, documentName, rejected_doc_coordinates).writexml()
+        #     """Update upload db"""
+        #     self.update_upload_filedetails(taskid, "REJECTED", result['message'])
+        # else:
+        #     """Write Redacted Document XML file"""
+        #     redacted_doc_coordinates = result['data']
+        #     WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).writexmldata()
+        #     WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).write_redacted_data_xml()
+        #     """Update upload db"""
+        #     self.update_upload_filedetails(taskid, "REDACTED", result['message'])
         
-        """Remove document from workspace"""
-        self.remove_document_from_workspace(document_path)
+        # """Remove document from workspace"""
+        # self.remove_document_from_workspace(document_path)
 
     """Process: Aadhaarcard Document"""
     def process_aadhaarcard(self, document_path, redactedPath, documentName, taskid):
         result = AaadhaarCardInfo(document_path).collect_aadhaarcard_info()
         status = result['status']
-        if status == "REJECTED":
-            """Redact 75% and get the coordinates"""
-            rejected_doc_coordinates = RedactRejectedDocument(document_path).rejected()
-            RejectedWriteXML(redactedPath, documentName, rejected_doc_coordinates).writexml()
-            """Update upload db"""
-            self.update_upload_filedetails(taskid, "REJECTED", result['message'])
-        else:
-            """Write Redacted Document XML file"""
-            redacted_doc_coordinates = result['data']
-            WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).writexmldata()
-            WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).write_redacted_data_xml()
-            """Update upload db"""
-            self.update_upload_filedetails(taskid, "REDACTED", result['message'])
+
+        self.perform_ocrr_on_docs(status, result, document_path, redactedPath, documentName, taskid)
+        # if status == "REJECTED":
+        #     """Redact 75% and get the coordinates"""
+        #     rejected_doc_coordinates = RedactRejectedDocument(document_path).rejected()
+        #     RejectedWriteXML(redactedPath, documentName, rejected_doc_coordinates).writexml()
+        #     """Update upload db"""
+        #     self.update_upload_filedetails(taskid, "REJECTED", result['message'])
+        # else:
+        #     """Write Redacted Document XML file"""
+        #     redacted_doc_coordinates = result['data']
+        #     WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).writexmldata()
+        #     WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).write_redacted_data_xml()
+        #     """Update upload db"""
+        #     self.update_upload_filedetails(taskid, "REDACTED", result['message'])
         
-        """Remove document from workspace"""
-        self.remove_document_from_workspace(document_path)
+        # """Remove document from workspace"""
+        # self.remove_document_from_workspace(document_path)
 
 
     """Process: Passport Document"""
@@ -129,50 +137,73 @@ class PerformOCRROnDocument:
         result = PassportDocumentInfo(document_path).collect_passport_info()
         status = result['status']
 
-        if status == "REJECTED":
-            """Redact 75% and get the coordinates"""
-            rejected_doc_coordinates = RedactRejectedDocument(document_path).rejected()
-            RejectedWriteXML(redactedPath, documentName, rejected_doc_coordinates).writexml()
-            """Update upload db"""
-            self.update_upload_filedetails(taskid, "REJECTED", result['message'])
-        else:
-            """Write Redacted Document XML file"""
-            redacted_doc_coordinates = result['data']
-            WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).writexmldata()
-            WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).write_redacted_data_xml()
-            """Update upload db"""
-            self.update_upload_filedetails(taskid, "REDACTED", result['message'])
+        self.perform_ocrr_on_docs(status, result, document_path, redactedPath, documentName, taskid)
+        # if status == "REJECTED":
+        #     """Redact 75% and get the coordinates"""
+        #     rejected_doc_coordinates = RedactRejectedDocument(document_path).rejected()
+        #     RejectedWriteXML(redactedPath, documentName, rejected_doc_coordinates).writexml()
+        #     """Update upload db"""
+        #     self.update_upload_filedetails(taskid, "REJECTED", result['message'])
+        # else:
+        #     """Write Redacted Document XML file"""
+        #     redacted_doc_coordinates = result['data']
+        #     WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).writexmldata()
+        #     WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).write_redacted_data_xml()
+        #     """Update upload db"""
+        #     self.update_upload_filedetails(taskid, "REDACTED", result['message'])
         
-        """Remove document from workspace"""
-        self.remove_document_from_workspace(document_path)
+        # """Remove document from workspace"""
+        # self.remove_document_from_workspace(document_path)
 
     """Process: Driving License Document"""
     def process_dl(self, document_path, redactedPath, documentName, taskid ):
         result = DrivingLicenseDocumentInfo(document_path).collect_dl_info()
         status = result['status']
 
-        if status == "REJECTED":
-            """Redact 75% and get the coordinates"""
-            rejected_doc_coordinates = RedactRejectedDocument(document_path).rejected()
-            RejectedWriteXML(redactedPath, documentName, rejected_doc_coordinates).writexml()
-            """Update upload db"""
-            self.update_upload_filedetails(taskid, "REJECTED", result['message'])
-        else:
-            """Write Redacted Document XML file"""
-            redacted_doc_coordinates = result['data']
-            WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).writexmldata()
-            WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).write_redacted_data_xml()
-            """Update upload db"""
-            self.update_upload_filedetails(taskid, "REDACTED", result['message'])
+        self.perform_ocrr_on_docs(status, result, document_path, redactedPath, documentName, taskid)
+        # if status == "REJECTED":
+        #     """Redact 75% and get the coordinates"""
+        #     rejected_doc_coordinates = RedactRejectedDocument(document_path).rejected()
+        #     RejectedWriteXML(redactedPath, documentName, rejected_doc_coordinates).writexml()
+        #     """Update upload db"""
+        #     self.update_upload_filedetails(taskid, "REJECTED", result['message'])
+        # else:
+        #     """Write Redacted Document XML file"""
+        #     redacted_doc_coordinates = result['data']
+        #     WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).writexmldata()
+        #     WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).write_redacted_data_xml()
+        #     """Update upload db"""
+        #     self.update_upload_filedetails(taskid, "REDACTED", result['message'])
         
-        """Remove document from workspace"""
-        self.remove_document_from_workspace(document_path)
+        # """Remove document from workspace"""
+        # self.remove_document_from_workspace(document_path)
     
     """Process: CDSL Document"""
     def process_cdsl(self, document_path, redactedPath, documentName, taskid):
         result = CDSLInfo(document_path).collect_cdsl_info()
         status = result['status']
 
+        self.perform_ocrr_on_docs(status, result, document_path, redactedPath, documentName, taskid)
+        # if status == "REJECTED":
+        #     """Redact 75% and get the coordinates"""
+        #     rejected_doc_coordinates = RedactRejectedDocument(document_path).rejected()
+        #     RejectedWriteXML(redactedPath, documentName, rejected_doc_coordinates).writexml()
+        #     """Update upload db"""
+        #     self.update_upload_filedetails(taskid, "REJECTED", result['message'])
+        # else:
+        #     """Write Redacted Document XML file"""
+        #     redacted_doc_coordinates = result['data']
+        #     WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).writexmldata()
+        #     WriteXMLData(redactedPath, documentName, redacted_doc_coordinates ).write_redacted_data_xml()
+        #     """Update upload db"""
+        #     self.update_upload_filedetails(taskid, "REDACTED", result['message'])
+        
+        # """Remove document from workspace"""
+        # self.remove_document_from_workspace(document_path)
+
+
+    def perform_ocrr_on_docs(self, status, result, document_path, redactedPath, documentName, taskid):
+
         if status == "REJECTED":
             """Redact 75% and get the coordinates"""
             rejected_doc_coordinates = RedactRejectedDocument(document_path).rejected()
@@ -189,7 +220,6 @@ class PerformOCRROnDocument:
         
         """Remove document from workspace"""
         self.remove_document_from_workspace(document_path)
-
 
 
     def remove_collection_data_from_ocrrworkspace(self, taskid):
