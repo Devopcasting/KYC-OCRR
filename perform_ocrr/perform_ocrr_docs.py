@@ -72,7 +72,6 @@ class PerformOCRROnDocument:
     def process_e_aadhaarcard(self, document_path, redactedPath, documentName, taskid ):
         result = EaadhaarCardInfo(document_path).collect_eaadhaarcard_info()
         status = result['status']
-
         self.perform_ocrr_on_docs(status, result, document_path, redactedPath, documentName, taskid)
         
     """Process: Aadhaarcard Document"""
