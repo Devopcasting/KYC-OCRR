@@ -65,7 +65,6 @@ class PerformOCRROnDocument:
     def process_pancard(self, document_path, redactedPath, documentName, taskid):
         result = PancardDocumentInfo(document_path).collect_pancard_info()
         status = result['status']
-
         self.perform_ocrr_on_docs(status, result, document_path, redactedPath, documentName, taskid)
 
        
