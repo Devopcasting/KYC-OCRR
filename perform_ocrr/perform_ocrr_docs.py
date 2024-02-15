@@ -21,15 +21,23 @@ class PerformOCRROnDocument:
         self.db_client = MongoDBConnection().get_connection()
     
     def ocrr_docs(self):
+
         """Identify Document"""
         document_identification_obj = DocumentTypeIdentification(self.document_info['documentPath'])
 
-        """Identify Pancard"""
-        if document_identification_obj.identify_pancard():
+        """Identify: CDSL Document"""
+        if document_identification_obj.identify_cdsl():
+             self.process_cdsl(self.document_info['documentPath'], self.document_info['redactedPath'],
+                                 self.document_info['documentName'], self.document_info['taskId'])
+             
+             """Identify: Pancard Document"""
+        elif document_identification_obj.identify_pancard():
             self.process_pancard(self.document_info['documentPath'], self.document_info['redactedPath'],
                                  self.document_info['documentName'], self.document_info['taskId'])
-            """Identify E-Aadhaar"""
+            
+            """Identify: Aadhaar Document"""
         elif document_identification_obj.identify_aadhaarcard_format():
+
             if document_identification_obj.identify_eaadhaarcard():
                 self.process_e_aadhaarcard(self.document_info['documentPath'], self.document_info['redactedPath'],
                                  self.document_info['documentName'], self.document_info['taskId'])
@@ -39,16 +47,17 @@ class PerformOCRROnDocument:
             else:
                  self.unidentified_document_rejected(self.document_info['documentPath'], self.document_info['redactedPath'],
                                  self.document_info['documentName'], self.document_info['taskId'])
-
-            """Identify Passport"""
+                 
+                 """Identify: Passport Document"""
         elif document_identification_obj.identify_passport():
+
             self.process_passport(self.document_info['documentPath'], self.document_info['redactedPath'],
                                  self.document_info['documentName'], self.document_info['taskId'])
+            
+            """Identify: Driving License Document"""
         elif document_identification_obj.identify_dl():
+
             self.process_dl(self.document_info['documentPath'], self.document_info['redactedPath'],
-                                 self.document_info['documentName'], self.document_info['taskId'])
-        elif document_identification_obj.identify_cdsl():
-            self.process_cdsl(self.document_info['documentPath'], self.document_info['redactedPath'],
                                  self.document_info['documentName'], self.document_info['taskId'])
         else:
             self.unidentified_document_rejected(self.document_info['documentPath'], self.document_info['redactedPath'],
