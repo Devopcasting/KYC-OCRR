@@ -20,7 +20,6 @@ class DocumentTypeIdentification:
             """Extract text from document in dictionary format"""
             data_text = pytesseract.image_to_string(document_path, output_type=pytesseract.Output.DICT, config=tesseract_config)
             
-        
         """Clean the extracted text"""
         clean_text_data = CleanText(data_text).clean_text()
 
