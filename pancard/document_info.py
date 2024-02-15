@@ -1,7 +1,9 @@
 import re
 import pytesseract
 import datetime
+import cv2
 import configparser
+from qreader import QReader
 from ocrr_log_mgmt.ocrr_log import OCRREngineLogging
 from helper.pancard_text_coordinates import TextCoordinates
 from helper.pancard_signature_text_coordinates import SignatureTextCoordinates
@@ -10,6 +12,8 @@ from pancard.pattern1 import PanCardPattern1
 
 class PancardDocumentInfo:
     def __init__(self, document_path: str) -> None:
+
+        self.document_path = document_path
 
         """Read config.ini"""
         config = configparser.ConfigParser(allow_no_value=True)
@@ -32,6 +36,9 @@ class PancardDocumentInfo:
 
         """Get the text for signature identification"""
         self.signature_text_data = pytesseract.image_to_string(document_path)
+
+        """Create a QReader instance"""
+        self.qreader = QReader()
     
     """func: extract pancard number"""
     def extract_pancard_number(self) -> dict:
@@ -150,9 +157,8 @@ class PancardDocumentInfo:
                 if text.lower() in matching_text_keyword:
                     signature_coordinates.append([self.signature_coords[i + 1][0], self.signature_coords[i + 1][1],
                                                    self.signature_coords[i + 1][2], self.signature_coords[i + 1][3] ])
-                    signature_coordinates.append([self.signature_coords[i + 2][0], self.signature_coords[i + 2][1], 
-                                                  self.signature_coords[i + 2][2], self.signature_coords[i + 2][3] ])
-                    break
+                    # signature_coordinates.append([self.signature_coords[i + 2][0], self.signature_coords[i + 2][1], 
+                    #                               self.signature_coords[i + 2][2], self.signature_coords[i + 2][3] ])
             
             if not signature_coordinates:
                 result = {
@@ -190,7 +196,36 @@ class PancardDocumentInfo:
 
             return result
 
+    """func: extract QR code"""
+    def extract_qr_code(self):
+        result = {}
+        qrcode_coordinates = []
+
+        # Load the image
+        image = cv2.imread(self.document_path)
+
+        # Detect and decode QR codes
+        found_qrs = self.qreader.detect(image)
+
+        if not found_qrs:
+            result = {
+                "Aadhaar QR Code": " ",
+                "coordinates": []
+            }
+            return result
+        """get 50% of QR Code"""
+        for i in found_qrs:
+            x1, y1, x2, y2 = i['bbox_xyxy']
+            qrcode_coordinates.append([int(round(x1)), int(round(y1)), int(round(x2)), (int(round(y1)) + int(round(y2))) // 2])
+            #qrcode_coordinates.append([int(round(x1)), int(round(y1)), int(round(x2)), int(round(y2))])
         
+        result = {
+            "QR-Code": f"Found {len(qrcode_coordinates)} QR Codes",
+            "coordinates": qrcode_coordinates
+        }
+        return result
+    
+
     """func: find matching text position"""
     def __find_matching_text(self, lines, matching_text_keyword):
         for i,line in enumerate(lines):
@@ -303,6 +338,14 @@ class PancardDocumentInfo:
                 else:
                     pancard_doc_info_list.append(user_signature)
                     self.logger.error("| Pancard Signature not found")
+            
+            """Collect: QR-Code"""
+            qr_code = self.extract_qr_code()
+            if len(qr_code['coordinates']) != 0:
+                pancard_doc_info_list.append(qr_code)
+            else:
+                pancard_doc_info_list.append(qr_code)
+                self.logger.error("| Pancard QR Code not found")
 
             """check pancard_doc_info_list"""
             if len(pancard_doc_info_list) == 0:

@@ -29,14 +29,23 @@ class PanCardPattern2:
             return result
         
         """get the next line of matching index"""
-        pattern = r"\b(?:department|departnent|income|tax|govt|are|an|ad)\b(?=\s|\W|$)|[-=\d]+"
+        pattern = r"\b(?:department|departnent|income|sires|account|card|tax|govt|are|an|ad)\b(?=\s|\W|$)|[-=\d]+"
         for line in lines[matching_text_index:]:
             match = re.search(pattern, line.lower(), flags=re.IGNORECASE)
             if match:
                 continue
-            next_line_list = line.split()
-            break
+            if line.isupper():
+                next_line_list = line.split()
+                break
         
+        if not next_line_list:
+            result = {
+                f"{self.LABEL_NAME}": " ",
+                "coordinates": []
+            }
+            return result
+        
+
         """remove special characters and white spaces"""
         clean_next_line = [element for element in next_line_list if re.search(r'[a-zA-Z0-9]', element)]
         user_name = " ".join(clean_next_line)
@@ -49,7 +58,7 @@ class PanCardPattern2:
               matching_text_coords.append([x1, y1, x2, y2])
             if len(matching_text_coords) == len(clean_next_line):
                 break
-        
+    
         if len(matching_text_coords) > 1:
             result = {
                 f"{self.LABEL_NAME}": user_name,
@@ -73,60 +82,121 @@ class PanCardPattern2:
     """func: extract father's name"""
     def extract_fathername_p2(self):
         result = {}
-        dob_text = None
+        matching_text = None
+        matching_text_list = None
+        matching_index = None
         matching_text_coords = []
 
-        """Data patterns: DD/MM/YYY, DD-MM-YYY"""
-        date_pattern = r'\d{2}/\d{2}/\d{4}|\d{2}-\d{2}-\d{4}'
-        for i, (x1, y1, x2, y2, text) in enumerate(self.coordinates):
-            match = re.search(date_pattern, text)
-            if match:
-                dob_text = text
-                break
-        if not dob_text:
-            result = {
-                f"{self.LABEL_NAME}": " ",
-                "coordinates": []
-            }
-            return result
-        
         """split the text into lines"""
         lines = [i for i in self.text.splitlines() if len(i) != 0]
 
-        """find the matching text index"""
-        matching_text_index = self.__find_matching_text_index_father_name(lines, dob_text)
-        if matching_text_index == 404:
+        """reverse line list"""
+        reverse_line = lines[::-1]
+
+        """Data patterns: DD/MM/YYY, DD-MM-YYY"""
+        date_pattern = r'\d{2}/\d{2}/\d{4}|\d{2}-\d{2}-\d{4}'
+        matching_pattern = r"bonn|birth"
+        for i, text in enumerate(reverse_line):
+            match_dob = re.search(date_pattern, text)
+            match_pattern = re.search(matching_pattern, text, flags=re.IGNORECASE)
+            if match_dob or match_pattern:
+                matching_index = i + 1
+                break
+        
+        if not matching_index:
             result = {
                 f"{self.LABEL_NAME}": " ",
                 "coordinates": []
             }
             return result
         
-        father_name_text = lines[matching_text_index]
-        father_name_list = father_name_text.split()
-        if len(father_name_list) > 1:
-            father_name_list = father_name_list[:-1]
+        for text in reverse_line[matching_index :]:
+            if text.isupper():
+                matching_text = text
+                matching_text_list = text.split()
+                break
+        
+        if not matching_text_list:
+            result = {
+                f"{self.LABEL_NAME}": " ",
+                "coordinates": []
+            }
+            return result
+        
+        if len(matching_text_list) > 1:
+            matching_text_list = matching_text_list[:-1]
 
         """get the coordinates"""
-        target_index = next((i for i, item in enumerate(self.coordinates) if item[4] == dob_text), None)
-        for item in reversed(self.coordinates[:target_index + 1]):
-            text = item[4]
-            if text in father_name_list:
-                matching_text_coords.append([item[0], item[1], item[2], item[3]])
-            if len(matching_text_coords) == len(father_name_list):
+        for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
+            if text in matching_text_list:
+                matching_text_coords.append([x1, y1, x2, y2])
+            if len(matching_text_list) == len(matching_text_coords):
                 break
-            
+        
+
         if len(matching_text_coords) > 1:
             result = {
-                f"{self.LABEL_NAME}": father_name_text,
+                f"{self.LABEL_NAME}": matching_text,
                 "coordinates": [[matching_text_coords[-1][0], matching_text_coords[-1][1], matching_text_coords[0][2], matching_text_coords[0][3]]]
             }
         else:
             result = {
-                f"{self.LABEL_NAME}": father_name_text,
+                f"{self.LABEL_NAME}": matching_text,
                 "coordinates": [[matching_text_coords[0][0], matching_text_coords[0][1], matching_text_coords[0][2], matching_text_coords[0][3]]]
             }
         return result
+    
+        # """Data patterns: DD/MM/YYY, DD-MM-YYY"""
+        # date_pattern = r'\d{2}/\d{2}/\d{4}|\d{2}-\d{2}-\d{4}'
+        # for i, (x1, y1, x2, y2, text) in enumerate(self.coordinates):
+        #     match = re.search(date_pattern, text)
+        #     if match:
+        #         dob_text = text
+        #         break
+        # if not dob_text:
+        #     result = {
+        #         f"{self.LABEL_NAME}": " ",
+        #         "coordinates": []
+        #     }
+        #     return result
+        
+        # """split the text into lines"""
+        # lines = [i for i in self.text.splitlines() if len(i) != 0]
+
+        # """find the matching text index"""
+        # matching_text_index = self.__find_matching_text_index_father_name(lines, dob_text)
+        # if matching_text_index == 404:
+        #     result = {
+        #         f"{self.LABEL_NAME}": " ",
+        #         "coordinates": []
+        #     }
+        #     return result
+        
+        # father_name_text = lines[matching_text_index]
+        # father_name_list = father_name_text.split()
+        # if len(father_name_list) > 1:
+        #     father_name_list = father_name_list[:-1]
+
+        # """get the coordinates"""
+        # target_index = next((i for i, item in enumerate(self.coordinates) if item[4] == dob_text), None)
+        # for item in reversed(self.coordinates[:target_index + 1]):
+        #     text = item[4]
+        #     if text in father_name_list:
+        #         matching_text_coords.append([item[0], item[1], item[2], item[3]])
+        #     if len(matching_text_coords) == len(father_name_list):
+        #         break
+            
+        # if len(matching_text_coords) > 1:
+        #     result = {
+        #         f"{self.LABEL_NAME}": father_name_text,
+        #         "coordinates": [[matching_text_coords[-1][0], matching_text_coords[-1][1], matching_text_coords[0][2], matching_text_coords[0][3]]]
+        #     }
+        # else:
+        #     result = {
+        #         f"{self.LABEL_NAME}": father_name_text,
+        #         "coordinates": [[matching_text_coords[0][0], matching_text_coords[0][1], matching_text_coords[0][2], matching_text_coords[0][3]]]
+        #     }
+        # return result
 
     def __find_matching_text_index_father_name(self, lines, matching_text) -> int:
         for i,line in enumerate(lines):

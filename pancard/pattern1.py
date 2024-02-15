@@ -30,8 +30,12 @@ class PanCardPattern1:
             return result
         
         """get the next line of matching index"""
-        next_line_list = lines[matching_text_index + 1].split()
-       
+        #next_line_list = lines[matching_text_index + 1].split()
+        for text in lines[matching_text_index + 1:]:
+            if text.isupper():
+                next_line_list = text.split()
+                break
+            
         """remove special characters and white spaces"""
         clean_next_line = [element for element in next_line_list if re.search(r'[a-zA-Z0-9]', element)]
         user_name = " ".join(clean_next_line)
