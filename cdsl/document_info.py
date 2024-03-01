@@ -37,7 +37,7 @@ class CDSLInfo:
         
         if not pancard_coordinates:
             result = {
-                "CDSL Pancard Number": " ",
+                "CDSL Pancard Number": "",
                 "coordinates": []
             }
             return result
@@ -71,7 +71,7 @@ class CDSLInfo:
         
         if not next_line:
             result = {
-                "CDSL Name": " ",
+                "CDSL Name": "",
                 "coordinates": []
             }
             return result
@@ -128,7 +128,8 @@ class CDSLInfo:
                 self.logger.error("| CDSL Name not found")
 
             """check cdsl_doc_info_list"""
-            if len(cdsl_doc_info_list) == 0:
+            all_keys_and_coordinates_empty =  all(all(not v for v in d.values()) for d in cdsl_doc_info_list)
+            if all_keys_and_coordinates_empty:
                 return {"message": "Unable to extract CDSL information", "status": "REJECTED"}
             else:
                 return {"message": "Successfully Redacted CDSL Document", "status": "REDACTED", "data": cdsl_doc_info_list}
