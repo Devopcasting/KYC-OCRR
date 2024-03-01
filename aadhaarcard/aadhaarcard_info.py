@@ -45,7 +45,7 @@ class AaadhaarCardInfo:
         
         if not dob_coordinates:
             result = {
-                "Aadhaar DOB": " ",
+                "Aadhaar DOB": "",
                 "coordinates": []
             }
             return result
@@ -73,7 +73,7 @@ class AaadhaarCardInfo:
                 break
         if not gender_coordinates:
             result = {
-                "Aadhaar Gender": " ",
+                "Aadhaar Gender": "",
                 "coordinates": []
             }
             return result
@@ -98,7 +98,7 @@ class AaadhaarCardInfo:
                 matching_index = i
         if matching_index == 0:
             result = {
-                "Aadhaar Number": " ",
+                "Aadhaar Number": "",
                 "coordinates": []
             }
             return result
@@ -271,7 +271,8 @@ class AaadhaarCardInfo:
                 aadhaarcard_doc_info_list.append(regional_name)
 
             """"check eaadhaarcard_doc_info_list"""
-            if len(aadhaarcard_doc_info_list) == 0:
+            all_keys_and_coordinates_empty =  all(all(not v for v in d.values()) for d in aadhaarcard_doc_info_list)
+            if all_keys_and_coordinates_empty:
                 return {"message": "Unable to extract Aadhaar information", "status": "REJECTED"}
             else:
                 return {"message": "Successfully Redacted Aadhaar Card Document", "status": "REDACTED", "data": aadhaarcard_doc_info_list}

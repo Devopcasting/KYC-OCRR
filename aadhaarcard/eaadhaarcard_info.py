@@ -56,7 +56,7 @@ class EaadhaarCardInfo:
                     break
         if not dob_coordinates:
             result = {
-                "Aadhaar DOB": " ",
+                "Aadhaar DOB": "",
                 "coordinates": []
             }
             return result
@@ -101,7 +101,7 @@ class EaadhaarCardInfo:
                 break
         if matching_index == 0:
             result = {
-                "Aadhaar Gender": " ",
+                "Aadhaar Gender": "",
                 "coordinates": []
             }
             return result
@@ -135,7 +135,7 @@ class EaadhaarCardInfo:
                 matching_index = i
         if matching_index == 0:
             result = {
-                "Aadhaar Number": " ",
+                "Aadhaar Number": "",
                 "coordinates": []
             }
             return result
@@ -176,7 +176,7 @@ class EaadhaarCardInfo:
                 break
         if not matching_text:
             result = {
-                "Aadhaar Name": " ",
+                "Aadhaar Name": "",
                 "coordinates": []
             }
             return result
@@ -213,7 +213,7 @@ class EaadhaarCardInfo:
                 break
         if not matching_text:
             result = {
-                "Aadhaar Regional Name": " ",
+                "Aadhaar Regional Name": "",
                 "coordinates": []
             }
             return result
@@ -247,7 +247,7 @@ class EaadhaarCardInfo:
                 break
         if not mobile_coordinates:
             result = {
-                "Aadhaar Mobile Number": " ",
+                "Aadhaar Mobile Number": "",
                 "coordinates": []
             }
             return result
@@ -274,7 +274,7 @@ class EaadhaarCardInfo:
                 pin_code = text
         if not pin_code_coordinates:
             result = {
-                "Aadhaar Pincode": " ",
+                "Aadhaar Pincode": "",
                 "coordinates": []
             }
             return result
@@ -302,7 +302,7 @@ class EaadhaarCardInfo:
                 break
         if not state_coordinates:
             result = {
-                "Aadhaar Place Name": " ",
+                "Aadhaar Place Name": "",
                 "coordinates": []
             }
             return result
@@ -327,7 +327,7 @@ class EaadhaarCardInfo:
 
         if not found_qrs:
             result = {
-                "Aadhaar QR Code": " ",
+                "Aadhaar QR Code": "",
                 "coordinates": []
             }
             return result
@@ -430,7 +430,8 @@ class EaadhaarCardInfo:
 
 
             """"check eaadhaarcard_doc_info_list"""
-            if len(eaadhaarcard_doc_info_list) == 0:
+            all_keys_and_coordinates_empty =  all(all(not v for v in d.values()) for d in eaadhaarcard_doc_info_list)
+            if all_keys_and_coordinates_empty:
                 return {"message": "Unable to extract E-Aadhaar information", "status": "REJECTED"}
             else:
                 return {"message": "Successfully Redacted E-Aadhaar Card Document", "status": "REDACTED", "data": eaadhaarcard_doc_info_list}
