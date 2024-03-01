@@ -48,7 +48,7 @@ class PassportDocumentInfo:
                 break
         if matching_line_index_top is None:
             result = {
-                "Passport Number": " ",
+                "Passport Number": "",
                 "coordinates": []
             }
             return result
@@ -65,7 +65,7 @@ class PassportDocumentInfo:
                 break
         if matching_line_index_bottom is None:
             result = {
-                "Passport Number": " ",
+                "Passport Number": "",
                 "coordinates": []
             }
             return result
@@ -108,7 +108,7 @@ class PassportDocumentInfo:
         
         if not date_coords:
             result = {
-                "Passport Dates": " ",
+                "Passport Dates": "",
                 "coordinates": []
             }
             return result
@@ -140,7 +140,7 @@ class PassportDocumentInfo:
                 break
         if not gender_coordinates:
             result = {
-                "Passport Gender": " ",
+                "Passport Gender": "",
                 "coordinates": []
             }
             return result
@@ -166,7 +166,7 @@ class PassportDocumentInfo:
         matching_text_index = self.__find_matching_line_index(clean_text, matching_text)
         if matching_text_index == 0:
             result = {
-                "Passport Surname": " ",
+                "Passport Surname": "",
                 "coordinates": []
             }
             return result
@@ -180,7 +180,7 @@ class PassportDocumentInfo:
                 next_line_list.append(line)
         if not next_line_list:
             result = {
-                "Passport Surname": " ",
+                "Passport Surname": "",
                 "coordinates": []
             }
             return result
@@ -218,7 +218,7 @@ class PassportDocumentInfo:
         matching_line_index = self.__find_matching_line_index(clean_text, matching_text)
         if matching_line_index == 0:
             result = {
-                "Passport Given Name": " ",
+                "Passport Given Name": "",
                 "coordinates": []
             }
             return result
@@ -233,7 +233,7 @@ class PassportDocumentInfo:
 
         if not next_line_list:
             result = {
-                "Passport Given Name": " ",
+                "Passport Given Name": "",
                 "coordinates": []
             }
             return result
@@ -271,7 +271,7 @@ class PassportDocumentInfo:
         matching_line_index = self.__find_matching_line_index(clean_text, matching_text)
         if matching_line_index == 0:
             result = {
-                "Passport Father Name": " ",
+                "Passport Father Name": "",
                 "coordinates": []
             }
             return result
@@ -285,7 +285,7 @@ class PassportDocumentInfo:
                 next_line_list.extend(line.split())
         if not next_line_list:
             result = {
-                "Passport Father Name": " ",
+                "Passport Father Name": "",
                 "coordinates": []
             }
             return result
@@ -328,7 +328,7 @@ class PassportDocumentInfo:
         matching_line_index = self.__find_matching_line_index(clean_text, matching_text)
         if matching_line_index == 0:
             result = {
-                "Passport Mother Name": " ",
+                "Passport Mother Name": "",
                 "coordinates": []
             }
             return result
@@ -342,7 +342,7 @@ class PassportDocumentInfo:
                 next_line_list.extend(line.split())
         if not next_line_list:
             result = {
-                "Passport Mother Name": " ",
+                "Passport Mother Name": "",
                 "coordinates": []
             }
             return result
@@ -386,7 +386,7 @@ class PassportDocumentInfo:
                 break
         if not ind_name_cords:
             result = {
-                "Passport IND Name": " ",
+                "Passport IND Name": "",
                 "coordinates": []
             }
             return result
@@ -419,7 +419,7 @@ class PassportDocumentInfo:
         
         if not pincode_coordinates:
             result = {
-                "Passport Pincode": " ",
+                "Passport Pincode": "",
                 "coordinates": []
             }
         for i in pincode_coords:
@@ -447,7 +447,7 @@ class PassportDocumentInfo:
 
         if not state_coordinates:
             result = {
-                "Passport Place": " ",
+                "Passport Place": "",
                 "coordinates": []
             }
 
@@ -553,7 +553,8 @@ class PassportDocumentInfo:
                 self.logger.error("| Passport State name not found")
             
             """check passport_doc_info_list"""
-            if len(passport_doc_info_list) == 0:
+            all_keys_and_coordinates_empty =  all(all(not v for v in d.values()) for d in passport_doc_info_list)
+            if all_keys_and_coordinates_empty:
                 return {"message": "Unable to extract Passport information", "status": "REJECTED"}
             else:
                 return {"message": "Successfully Redacted Passport Document", "status": "REDACTED", "data": passport_doc_info_list}
