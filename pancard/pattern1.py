@@ -24,7 +24,7 @@ class PanCardPattern1:
         matching_text_index = self.__find_matching_text_index_username(lines, self.matching_text_keyword)
         if matching_text_index == 404:
             result = {
-                f"{self.LABEL_NAME}": " ",
+                f"{self.LABEL_NAME}": "",
                 "coordinates": []
             }
             return result

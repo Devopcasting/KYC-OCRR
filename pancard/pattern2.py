@@ -23,7 +23,7 @@ class PanCardPattern2:
         matching_text_index = self.__find_matching_text_index_username(lines, matching_text_keyword)
         if matching_text_index == 404:
             result = {
-                f"{self.LABEL_NAME}": " ",
+                f"{self.LABEL_NAME}": "",
                 "coordinates": []
             }
             return result
@@ -40,7 +40,7 @@ class PanCardPattern2:
         
         if not next_line_list:
             result = {
-                f"{self.LABEL_NAME}": " ",
+                f"{self.LABEL_NAME}": "",
                 "coordinates": []
             }
             return result
@@ -100,12 +100,16 @@ class PanCardPattern2:
             match_dob = re.search(date_pattern, text)
             match_pattern = re.search(matching_pattern, text, flags=re.IGNORECASE)
             if match_dob or match_pattern:
-                matching_index = i + 1
-                break
+                if len(reverse_line[i + 1]) == 1:
+                    matching_index = i + 2
+                    break
+                else:
+                    matching_index = i + 1
+                    break
         
         if not matching_index:
             result = {
-                f"{self.LABEL_NAME}": " ",
+                f"{self.LABEL_NAME}": "",
                 "coordinates": []
             }
             return result
@@ -118,7 +122,7 @@ class PanCardPattern2:
         
         if not matching_text_list:
             result = {
-                f"{self.LABEL_NAME}": " ",
+                f"{self.LABEL_NAME}": "",
                 "coordinates": []
             }
             return result
@@ -133,11 +137,10 @@ class PanCardPattern2:
             if len(matching_text_list) == len(matching_text_coords):
                 break
         
-
         if len(matching_text_coords) > 1:
             result = {
                 f"{self.LABEL_NAME}": matching_text,
-                "coordinates": [[matching_text_coords[-1][0], matching_text_coords[-1][1], matching_text_coords[0][2], matching_text_coords[0][3]]]
+                "coordinates": [[matching_text_coords[0][0], matching_text_coords[0][1], matching_text_coords[-1][2], matching_text_coords[-1][3]]]
             }
         else:
             result = {
@@ -146,58 +149,7 @@ class PanCardPattern2:
             }
         return result
     
-        # """Data patterns: DD/MM/YYY, DD-MM-YYY"""
-        # date_pattern = r'\d{2}/\d{2}/\d{4}|\d{2}-\d{2}-\d{4}'
-        # for i, (x1, y1, x2, y2, text) in enumerate(self.coordinates):
-        #     match = re.search(date_pattern, text)
-        #     if match:
-        #         dob_text = text
-        #         break
-        # if not dob_text:
-        #     result = {
-        #         f"{self.LABEL_NAME}": " ",
-        #         "coordinates": []
-        #     }
-        #     return result
         
-        # """split the text into lines"""
-        # lines = [i for i in self.text.splitlines() if len(i) != 0]
-
-        # """find the matching text index"""
-        # matching_text_index = self.__find_matching_text_index_father_name(lines, dob_text)
-        # if matching_text_index == 404:
-        #     result = {
-        #         f"{self.LABEL_NAME}": " ",
-        #         "coordinates": []
-        #     }
-        #     return result
-        
-        # father_name_text = lines[matching_text_index]
-        # father_name_list = father_name_text.split()
-        # if len(father_name_list) > 1:
-        #     father_name_list = father_name_list[:-1]
-
-        # """get the coordinates"""
-        # target_index = next((i for i, item in enumerate(self.coordinates) if item[4] == dob_text), None)
-        # for item in reversed(self.coordinates[:target_index + 1]):
-        #     text = item[4]
-        #     if text in father_name_list:
-        #         matching_text_coords.append([item[0], item[1], item[2], item[3]])
-        #     if len(matching_text_coords) == len(father_name_list):
-        #         break
-            
-        # if len(matching_text_coords) > 1:
-        #     result = {
-        #         f"{self.LABEL_NAME}": father_name_text,
-        #         "coordinates": [[matching_text_coords[-1][0], matching_text_coords[-1][1], matching_text_coords[0][2], matching_text_coords[0][3]]]
-        #     }
-        # else:
-        #     result = {
-        #         f"{self.LABEL_NAME}": father_name_text,
-        #         "coordinates": [[matching_text_coords[0][0], matching_text_coords[0][1], matching_text_coords[0][2], matching_text_coords[0][3]]]
-        #     }
-        # return result
-
     def __find_matching_text_index_father_name(self, lines, matching_text) -> int:
         for i,line in enumerate(lines):
             if len(line) != 1 and line == matching_text:

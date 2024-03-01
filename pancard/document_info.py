@@ -80,7 +80,7 @@ class PancardDocumentInfo:
 
         if not pancard_coordinates:
             result = {
-                "Pancard Number": " ",
+                "Pancard Number": "",
                 "coordinates": []
             }
             return result
@@ -110,7 +110,7 @@ class PancardDocumentInfo:
                 break
         if not dob_coordinates:
             result = {
-                "Pancard DOB": " ",
+                "Pancard DOB": "",
                 "coordinates": []
             }
             return result
@@ -122,28 +122,7 @@ class PancardDocumentInfo:
             "coordinates": [[dob_coordinates[0], dob_coordinates[1], dob_coordinates[0] + int(0.54 * width), dob_coordinates[3]]]
         }
         return result
-        # """Validate the date format"""
-        # date_seprator = ''
-        # if '-' in dob_text:
-        #     date_seprator = '-'
-        # else:
-        #     date_seprator = '/'
-
-        # if self.validate_date(dob_text, date_seprator):
-
-        #     """Get first 6 chars"""
-        #     width = dob_coordinates[2] - dob_coordinates[0]
-        #     result = {
-        #         "Pancard DOB": dob_text,
-        #         "coordinates": [[dob_coordinates[0], dob_coordinates[1], dob_coordinates[0] + int(0.54 * width), dob_coordinates[3]]]
-        #     }
-        # else:
-        #     result = {
-        #         "Pancard DOB": " ",
-        #         "coordinates": []
-        #     }
-
-        #return result
+        
 
     """func: extract signature"""
     def extract_signature(self, pattern_no):
@@ -162,7 +141,7 @@ class PancardDocumentInfo:
             
             if not signature_coordinates:
                 result = {
-                "Pancard Signature": " ",
+                "Pancard Signature": "",
                 "coordinates": []
                 }
                 return result
@@ -184,7 +163,7 @@ class PancardDocumentInfo:
             
             if not signature_coordinates:
                 result = {
-                "Pancard Signature": " ",
+                "Pancard Signature": "",
                 "coordinates": []
                 }
                 return result
@@ -209,7 +188,7 @@ class PancardDocumentInfo:
 
         if not found_qrs:
             result = {
-                "Aadhaar QR Code": " ",
+                "Pancard QR Code": "",
                 "coordinates": []
             }
             return result
@@ -348,7 +327,8 @@ class PancardDocumentInfo:
                 self.logger.error("| Pancard QR Code not found")
 
             """check pancard_doc_info_list"""
-            if len(pancard_doc_info_list) == 0:
+            all_keys_and_coordinates_empty =  all(all(not v for v in d.values()) for d in pancard_doc_info_list)
+            if all_keys_and_coordinates_empty:
                 return {"message": "Unable to extract Pancard information", "status": "REJECTED"}
             else:
                 return {"message": "Successfully Redacted PAN Card Document", "status": "REDACTED", "data": pancard_doc_info_list}
@@ -400,5 +380,31 @@ class PancardDocumentInfo:
                     self.logger.error("| Pancard Father's name  not found")
                     return {"message": "Unable to extract Father's name from Pancard document", "status": "REJECTED"}
                 pancard_doc_info_list.append(fathername_p2)
-                    
-                return {"message": "Successfully Redacted PAN Card Document", "status": "REDACTED", "data": pancard_doc_info_list}
+            
+            """Collect: Signature"""
+            if pattern_number == 1:
+                user_signature = self.extract_signature(1)
+
+                if len(user_signature['coordinates']) != 0:
+                    pancard_doc_info_list.append(user_signature)
+                else:
+                    pancard_doc_info_list.append(user_signature)
+                    self.logger.error("| Pancard Signature not found")
+            else:
+                user_signature = self.extract_signature(2)
+
+                if len(user_signature['coordinates']) != 0:
+                    pancard_doc_info_list.append(user_signature)
+                else:
+                    pancard_doc_info_list.append(user_signature)
+                    self.logger.error("| Pancard Signature not found")
+            
+            """Collect: QR-Code"""
+            qr_code = self.extract_qr_code()
+            if len(qr_code['coordinates']) != 0:
+                pancard_doc_info_list.append(qr_code)
+            else:
+                pancard_doc_info_list.append(qr_code)
+                self.logger.error("| Pancard QR Code not found")
+
+            return {"message": "Successfully Redacted PAN Card Document", "status": "REDACTED", "data": pancard_doc_info_list}
