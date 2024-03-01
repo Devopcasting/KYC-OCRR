@@ -15,7 +15,7 @@ class RedactRejectedDocument:
         x1 = 0
         y1 = 0
         x2 = width
-        y2 = int(height * 0.875)
+        y2 = int(height * 0.890)
         coordinates_list = []
         coordinates_list.append([x1, y1, x2, y2])
         return coordinates_list
