@@ -45,7 +45,7 @@ class DrivingLicenseDocumentInfo:
                 break
         if not dl_number_coordinated:
             result = {
-                "Driving License Number": " ",
+                "Driving License Number": "",
                 "coordinates": []    
             }
             return result
@@ -76,7 +76,7 @@ class DrivingLicenseDocumentInfo:
         
         if not date_coords:
             result = {
-                "Driving License Dates": " ",
+                "Driving License Dates": "",
                 "coordinates": []
             }
             return result
@@ -108,7 +108,7 @@ class DrivingLicenseDocumentInfo:
                 break
         if not pincode_coords:
             result = {
-                "Driving License Pincode": " ",
+                "Driving License Pincode": "",
                 "coordinates": []
             }
         for i in pincode_coords:
@@ -136,7 +136,7 @@ class DrivingLicenseDocumentInfo:
         
         if not state_coordinates:
             result = {
-                "Driving License Place": " ",
+                "Driving License Place": "",
                 "coordinates": []
             }
         result = {
@@ -162,7 +162,7 @@ class DrivingLicenseDocumentInfo:
         
         if not matching_text_index:
             result = {
-                "Driving License Name": " ",
+                "Driving License Name": "",
                 "coordinates": []
             }
 
@@ -236,7 +236,8 @@ class DrivingLicenseDocumentInfo:
 
 
             """check dl_card_info_list"""
-            if len(dl_card_info_list) == 0:
+            all_keys_and_coordinates_empty =  all(all(not v for v in d.values()) for d in dl_card_info_list)
+            if all_keys_and_coordinates_empty:
                 return {"message": "Unable to extract driving license information", "status": "REJECTED"}
             else:
                 return {"message": "Successfully Redacted Driving License Document", "status": "REDACTED", "data": dl_card_info_list}
