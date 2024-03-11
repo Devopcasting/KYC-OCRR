@@ -4,6 +4,7 @@ from aadhaarcard.identify_aadhaarcard import IdentifyAadhaarCard
 from passport.identify_passport import IdentifyPassport
 from drivingl.identify_dl import IdentifyDrivingLicense
 from cdsl.identify_cdsl import IdentifyCDSL
+from e_pancard.identify_e_pancard import IdentifyEPanCard
 from check_img_rgb.image_rgb import CheckImageRGB
 from helper.clean_text import CleanText
 
@@ -37,6 +38,9 @@ class DocumentTypeIdentification:
 
         """CDSL Doc Object"""
         self.cdsl_doc_obj = IdentifyCDSL(clean_text_data)
+
+        """E-Pancard Object"""
+        self.e_pancard_obj = IdentifyEPanCard(clean_text_data)
     
     def identify_pancard(self) -> bool:
         if self.pancard_obj.check_pan_card():
@@ -70,5 +74,10 @@ class DocumentTypeIdentification:
     
     def identify_cdsl(self) -> bool:
         if self.cdsl_doc_obj.check_cdsl():
+            return True
+        return False
+
+    def identify_e_pancard(self) -> bool:
+        if self.e_pancard_obj.check_e_pan_card():
             return True
         return False
