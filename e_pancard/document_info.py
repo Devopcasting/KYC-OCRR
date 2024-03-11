@@ -324,6 +324,53 @@ class EPancardDocumentInfo:
             else:
                 return {"message": "Successfully Redacted E-PAN Card Document", "status": "REDACTED", "data": e_pancard_doc_info_list}
         else:
-            pass
+            """Collect: E-Pancard Number"""
+            pancard_number = self.extract_pancard_number()
+            if len(pancard_number['coordinates']) != 0:
+                e_pancard_doc_info_list.append(pancard_number)
+            else:
+                return {"message": "Unable to extract E-Pancard Number not found", "status": "REJECTED"}
+            
+            """Collect: E-Pancard DOB"""
+            pancard_dob = self.extract_dob()
+            if len(pancard_dob['coordinates']) != 0:
+                e_pancard_doc_info_list.append(pancard_dob)
+            else:
+                return {"message": "Unable to extract E-Pancard DOB", "status": "REJECTED"}
+
+            """"Collect: E-Pancard Gender"""
+            pancard_gender = self.extract_gender()
+            if len(pancard_gender['coordinates']) != 0:
+                e_pancard_doc_info_list.append(pancard_gender)
+            else:
+                return {"message": "Unable to extract E-Pancard Gender", "status": "REJECTED"}
+
+            """Collect: E-pancard Name"""
+            pancard_name = self.extract_name()
+            if len(pancard_name['coordinates']) != 0:
+                e_pancard_doc_info_list.append(pancard_name)
+            else:
+                return {"message": "Unable to extract E-Pancard User name", "status": "REJECTED"}
+
+            """Collect: E-pancard Father's name"""
+            pancard_father_name = self.extract_father_name()
+            if len(pancard_father_name['coordinates']) != 0:
+                e_pancard_doc_info_list.append(pancard_father_name)
+            else:
+                return {"message": "Unable to extract E-Pancard Father's name", "status": "REJECTED"}
+
+            """Collect: QR-Code"""
+            qr_code = self.extract_qr_code()
+            if len(qr_code['coordinates']) != 0:
+                e_pancard_doc_info_list.append(qr_code)
+            else:
+                return {"message": "Unable to extract E-Pancard QR-Code", "status": "REJECTED"}
+
+            """Collect: Bottom Pancard"""
+            bottom_pancard = self.redact_bottom_pancard()
+            e_pancard_doc_info_list.append(bottom_pancard)
+            
+          
+            return {"message": "Successfully Redacted E-PAN Card Document", "status": "REDACTED", "data": e_pancard_doc_info_list}
 
 
