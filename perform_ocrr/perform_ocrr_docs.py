@@ -6,6 +6,7 @@ from aadhaarcard.aadhaarcard_info import AaadhaarCardInfo
 from passport.document_info import PassportDocumentInfo
 from drivingl.document_info import DrivingLicenseDocumentInfo
 from cdsl.document_info import CDSLInfo
+from e_pancard.document_info import EPancardDocumentInfo
 from write_xml_data.xmldata import WriteXMLData
 from write_xml_data.rejected_xmldata import RejectedWriteXML
 from rejected_doc_redacted.redact_rejected_document import RedactRejectedDocument
@@ -31,6 +32,10 @@ class PerformOCRROnDocument:
                                  self.document_info['documentName'], self.document_info['taskId'])
              
              """Identify: Pancard Document"""
+        elif document_identification_obj.identify_e_pancard():
+            self.process_e_pancard(self.document_info['documentPath'], self.document_info['redactedPath'],
+                                 self.document_info['documentName'], self.document_info['taskId'])
+             
         elif document_identification_obj.identify_pancard():
             self.process_pancard(self.document_info['documentPath'], self.document_info['redactedPath'],
                                  self.document_info['documentName'], self.document_info['taskId'])
@@ -76,7 +81,12 @@ class PerformOCRROnDocument:
         status = result['status']
         self.perform_ocrr_on_docs(status, result, document_path, redactedPath, documentName, taskid)
 
-       
+    """Process: E-Pancard Document"""
+    def process_e_pancard(self, document_path, redactedPath, documentName, taskid):
+        result = EPancardDocumentInfo(document_path).collect_e_pancard_info()
+        status = result['status']
+        self.perform_ocrr_on_docs(status, result, document_path, redactedPath, documentName, taskid)
+
     """Process: E-aadhaarcard Document """
     def process_e_aadhaarcard(self, document_path, redactedPath, documentName, taskid ):
         result = EaadhaarCardInfo(document_path).collect_eaadhaarcard_info()
@@ -190,7 +200,7 @@ class PerformOCRROnDocument:
             HEADER = {'Content-Type': 'application/json'}
             requests.post(WEBHOOK_URL+"/CVCore/processstatus", data=json.dumps(payload), headers=HEADER)
         else:
-            print("ERROR")
+            print("Error Connecting WebHook")
 
 
 
