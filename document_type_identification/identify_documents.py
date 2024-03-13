@@ -23,7 +23,7 @@ class DocumentTypeIdentification:
             
         """Clean the extracted text"""
         clean_text_data = CleanText(data_text).clean_text()
-
+        
         """Pancard identification object"""
         self.pancard_obj = IdentifyPanCard(clean_text_data)
 
