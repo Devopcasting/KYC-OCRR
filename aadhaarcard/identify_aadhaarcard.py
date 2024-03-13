@@ -11,8 +11,8 @@ class IdentifyAadhaarCard:
         self.eaadhaarcard_regex = r"\b(?:enrollment|enrolment|enroliment|/enrolment)\b"
 
         # Regular expression pattern for Aadhaar card identifiers
-        self.aadhaar_card_regex = r"\b(?:uidal.gov.in|male|female)\b"
-    
+        self.aadhaar_card_regex = r"\b(?:uidal.gov.in|male|female|government of india)\b"
+
     def check_aadhaar_card_format(self) -> bool:
         for text in self.clean_text:
             if re.search(self.aadhaarcard_regex, text, flags=re.IGNORECASE):

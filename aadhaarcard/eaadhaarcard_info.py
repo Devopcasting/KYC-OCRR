@@ -3,7 +3,7 @@ import configparser
 import re
 import cv2
 import datetime
-from qreader import QReader
+from qreader import QReader 
 from ocrr_log_mgmt.ocrr_log import OCRREngineLogging
 from helper.eaadhaarcard_text_coordinates import TextCoordinates
 

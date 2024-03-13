@@ -1,6 +1,8 @@
 import pytesseract
 import configparser
 import re
+import cv2
+from qreader import QReader
 from ocrr_log_mgmt.ocrr_log import OCRREngineLogging
 from helper.eaadhaarcard_text_coordinates import TextCoordinates
 
@@ -26,6 +28,16 @@ class AaadhaarCardInfo:
         tesseract_config = r'--oem 3 --psm 11'
         self.text_data_default = pytesseract.image_to_string(document_path)
         self.text_data_regional = pytesseract.image_to_string(document_path, lang="hin+eng", config=tesseract_config)
+
+        self.states = ['andhra pradesh', 'arunachal pradesh', 'assam', 'bihar', 'chandigarh (ut)', 
+                       'chhattisgarh', 'dadra and nagar haveli (ut)', 'daman and diu (ut)', 'delhi (nct)', 
+                       'goa', 'gujarat', 'haryana', 'himachal pradesh', 'jammu and kashmir', 'jharkhand', 
+                       'karnataka', 'kerala', 'lakshadweep (ut)', 'madhya pradesh', 'maharashtra', 'manipur', 
+                       'meghalaya', 'mizoram', 'nagaland', 'odisha', 'puducherry (ut)', 'punjab', 'rajasthan', 
+                       'sikkim', 'tamil nadu', 'telangana', 'tripura', 'uttarakhand', 'uttar pradesh', 'bangalore', 'bengaluru']
+        
+        # Create a QReader instance
+        self.qreader = QReader()
 
     """func: extract DOB"""
     def extract_dob(self):
@@ -223,6 +235,96 @@ class AaadhaarCardInfo:
         return result
 
 
+    """"func: extract state name"""
+    def extract_state_name(self):
+        result = {}
+        state_name = ""
+        state_coordinates = []
+
+        """get the coordinates"""
+        for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates_default):
+            if text.lower() in self.states:
+                state_coordinates.append([x1, y1, x2, y2])
+                state_name = text
+                break
+        if not state_coordinates:
+            result = {
+                "Aadhaar Place Name": "",
+                "coordinates": []
+            }
+            return result
+        
+        result = {
+            "Aadhaar Place Name": state_name,
+            "coordinates": state_coordinates
+        }
+
+        return result
+
+    """func: extract pin code"""
+    def extract_pin_code(self):
+        result = {}
+        pin_code = ""
+        pin_code_coordinates = []
+        get_coords_result = []
+
+        """get the coordinates"""
+        for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates_default):
+            if len(text) == 6 and text.isdigit():
+                pin_code_coordinates.append([x1, y1, x2, y2])
+                pin_code = text
+        if not pin_code_coordinates:
+            result = {
+                "Aadhaar Pincode": "",
+                "coordinates": []
+            }
+            return result
+        
+        for i in pin_code_coordinates:
+            coords_result = self.get_first_3_chars(i)
+            get_coords_result.append(coords_result)
+        result = {
+                "Aadhaar Pincode": pin_code,
+                "coordinates": get_coords_result
+        }
+        return result
+    
+
+    """func: extract QR code"""
+    def extract_qr_code(self):
+        result = {}
+        qrcode_coordinates = []
+
+        # Load the image
+        image = cv2.imread(self.document_path)
+
+        # Detect and decode QR codes
+        found_qrs = self.qreader.detect(image)
+
+        if not found_qrs:
+            result = {
+                "Aadhaar QR Code": "",
+                "coordinates": []
+            }
+            return result
+        """get 50% of QR Code"""
+        for i in found_qrs:
+            x1, y1, x2, y2 = i['bbox_xyxy']
+            qrcode_coordinates.append([int(round(x1)), int(round(y1)), int(round(x2)), (int(round(y1)) + int(round(y2))) // 2])
+            #qrcode_coordinates.append([int(round(x1)), int(round(y1)), int(round(x2)), int(round(y2))])
+        
+        result = {
+            "QR-Code": f"Found {len(qrcode_coordinates)} QR Codes",
+            "coordinates": qrcode_coordinates
+        }
+        return result
+
+    """func: get first 3 chars"""
+    def get_first_3_chars(self, coords: list) -> list:
+        width = coords[2] - coords[0]
+        result = [coords[0], coords[1], coords[0] + int(0.30 * width), coords[3]]
+        return result
+
     """func: collect aadhaar card info"""
     def collect_aadhaarcard_info(self) -> dict:
         aadhaarcard_doc_info_list = []
@@ -269,6 +371,31 @@ class AaadhaarCardInfo:
             else:
                 self.logger.error("| Aadhaar Card name in regional language not found")
                 aadhaarcard_doc_info_list.append(regional_name)
+
+            """Collect: State name"""
+            state_name = self.extract_state_name()
+            if len(state_name['coordinates']) != 0:
+                aadhaarcard_doc_info_list.append(state_name)
+            else:
+                self.logger.error("| Aadhaar Card State name not found")
+                aadhaarcard_doc_info_list.append(state_name)
+            
+            """Collect: State Pin code"""
+            state_pin_code = self.extract_pin_code()
+            if len(state_pin_code['coordinates']) != 0:
+                aadhaarcard_doc_info_list.append(state_pin_code)
+            else:
+                self.logger.error("| Aadhaar Card State code not found")
+                aadhaarcard_doc_info_list.append(state_pin_code)
+            
+            """Collect: QR-Code"""
+            qr_code = self.extract_qr_code()
+            if len(qr_code['coordinates']) != 0:
+                aadhaarcard_doc_info_list.append(qr_code)
+            else:
+                self.logger.error("| Aadhaar Card QR-Code not found")
+                aadhaarcard_doc_info_list.append(qr_code)
+            
 
             """"check eaadhaarcard_doc_info_list"""
             all_keys_and_coordinates_empty =  all(all(not v for v in d.values()) for d in aadhaarcard_doc_info_list)
