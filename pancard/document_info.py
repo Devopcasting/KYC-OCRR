@@ -42,168 +42,189 @@ class PancardDocumentInfo:
     
     """func: extract pancard number"""
     def extract_pancard_number(self) -> dict:
-        result = {}
-        pancard_text = ""
-        pancard_coordinates = []
-        matching_text_index = None
-        matching_text_regex = r"\b(?:permanent|pe@fanent|pe@ffignent|pertianent|account|number|card|perenent|accoun|pormanent|petraancnt)\b"
-
-        """find matching text pattern"""
-        for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
-            if re.search(matching_text_regex, text.lower(), flags=re.IGNORECASE):
-                matching_text_index = i
-                break
-
-        if matching_text_index is None:
-            """find pancard number without matching pattern text"""
-            for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
-                if len(text) == 10 and text.isupper() and text.isalnum():
-                    pancard_coordinates = [x1, y1, x2, y2]
-                    pancard_text = text
-                    break
-                elif len(text) == 10 and text.isalnum():
-                    pancard_coordinates = [x1, y1, x2, y2]
-                    pancard_text = text.capitalize()
-                    break          
-        else:
-            """find pancard using matching pattern text index"""
-            for i in range(matching_text_index,  len(self.coordinates)):
-                text = self.coordinates[i][4]
-                if len(text) == 10 and text.isupper() and text.isalnum():
-                    pancard_coordinates = [self.coordinates[i][0], self.coordinates[i][1], self.coordinates[i][2], self.coordinates[i][3]]
-                    pancard_text = text
-                    break
-                elif len(text) == 10 and text.isalnum():
-                    pancard_coordinates = [self.coordinates[i][0], self.coordinates[i][1], self.coordinates[i][2], self.coordinates[i][3]]
-                    pancard_text = text.capitalize()
-                    break
-
-        if not pancard_coordinates:
+        try:
             result = {
-                "Pancard Number": "",
-                "coordinates": []
+                    "Pancard Number": "",
+                    "coordinates": []
+                }
+            pancard_text = ""
+            pancard_coordinates = []
+            matching_text_index = None
+            matching_text_regex = r"\b(?:permanent|pe@fanent|pe@ffignent|pertianent|account|number|card|perenent|accoun|pormanent|petraancnt)\b"
+
+            """find matching text pattern"""
+            for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
+                if re.search(matching_text_regex, text.lower(), flags=re.IGNORECASE):
+                    matching_text_index = i
+                    break
+
+            if matching_text_index is None:
+                """find pancard number without matching pattern text"""
+                for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
+                    if len(text) == 10 and text.isupper() and text.isalnum():
+                        pancard_coordinates = [x1, y1, x2, y2]
+                        pancard_text = text
+                        break
+                    elif len(text) == 10 and text.isalnum():
+                        pancard_coordinates = [x1, y1, x2, y2]
+                        pancard_text = text.capitalize()
+                        break          
+            else:
+                """find pancard using matching pattern text index"""
+                for i in range(matching_text_index,  len(self.coordinates)):
+                    text = self.coordinates[i][4]
+                    if len(text) == 10 and text.isupper() and text.isalnum():
+                        pancard_coordinates = [self.coordinates[i][0], self.coordinates[i][1], self.coordinates[i][2], self.coordinates[i][3]]
+                        pancard_text = text
+                        break
+                    elif len(text) == 10 and text.isalnum():
+                        pancard_coordinates = [self.coordinates[i][0], self.coordinates[i][1], self.coordinates[i][2], self.coordinates[i][3]]
+                        pancard_text = text.capitalize()
+                        break
+
+            if not pancard_coordinates:
+                return result
+        
+            width = pancard_coordinates[2] - pancard_coordinates[0]
+            result = {
+                "Pancard Number": pancard_text,
+                "coordinates": [[pancard_coordinates[0], pancard_coordinates[1], 
+                       pancard_coordinates[0] + int(0.65 * width),pancard_coordinates[3]]]
             }
             return result
-        
-        width = pancard_coordinates[2] - pancard_coordinates[0]
-        result = {
-            "Pancard Number": pancard_text,
-            "coordinates": [[pancard_coordinates[0], pancard_coordinates[1], 
-                       pancard_coordinates[0] + int(0.65 * width),pancard_coordinates[3]]]
-        }
-        return result
+        except Exception as error:
+            result = {
+                    "Pancard Number": "",
+                    "coordinates": []
+                }
+            return result
 
     """func: extract dob"""
     def extract_dob(self):
-        result = {}
-        dob_text = ""
-        dob_coordinates = []
+        try:
+            result = {
+                "Pancard DOB": "",
+                "coordinates": []
+            }
+            dob_text = ""
+            dob_coordinates = []
 
-        """Data patterns: DD/MM/YYY, DD-MM-YYY"""
-        date_pattern = r'\d{2}/\d{2}/\d{4}|\d{2}-\d{2}-\d{4}'
+            """Data patterns: DD/MM/YYY, DD-MM-YYY"""
+            date_pattern = r'\d{2}/\d{2}/\d{4}|\d{2}-\d{2}-\d{4}'
 
-        for i, (x1, y1, x2, y2, text) in enumerate(self.coordinates):
-            match = re.search(date_pattern, text)
-            if match:
-                dob_coordinates = [x1, y1, x2, y2]
-                dob_text = text
-                break
-        if not dob_coordinates:
+            for i, (x1, y1, x2, y2, text) in enumerate(self.coordinates):
+                match = re.search(date_pattern, text)
+                if match:
+                    dob_coordinates = [x1, y1, x2, y2]
+                    dob_text = text
+                    break
+            if not dob_coordinates:
+                return result
+        
+            """Get first 6 chars"""
+            width = dob_coordinates[2] - dob_coordinates[0]
+            result = {
+                "Pancard DOB": dob_text,
+                "coordinates": [[dob_coordinates[0], dob_coordinates[1], dob_coordinates[0] + int(0.54 * width), dob_coordinates[3]]]
+            }
+            return result
+        except Exception as error:
             result = {
                 "Pancard DOB": "",
                 "coordinates": []
             }
             return result
-        
-        """Get first 6 chars"""
-        width = dob_coordinates[2] - dob_coordinates[0]
-        result = {
-            "Pancard DOB": dob_text,
-            "coordinates": [[dob_coordinates[0], dob_coordinates[1], dob_coordinates[0] + int(0.54 * width), dob_coordinates[3]]]
-        }
-        return result
+
         
 
     """func: extract signature"""
     def extract_signature(self, pattern_no):
-        result = {}
-        matching_text_keyword = ["signature", "nature"]
-        signature_coordinates = []
+        try:
+            result = {
+                "Pancard Signature": "",
+                "coordinates": []
+                }
+            matching_text_keyword = ["signature", "nature"]
+            signature_coordinates = []
 
-        if pattern_no == 1:
-            """get the coordinates"""
-            for i,(x1, y1, x2, y2, text) in enumerate(self.signature_coords):
-                if text.lower() in matching_text_keyword:
-                    signature_coordinates.append([self.signature_coords[i + 1][0], self.signature_coords[i + 1][1],
+            if pattern_no == 1:
+                """get the coordinates"""
+                for i,(x1, y1, x2, y2, text) in enumerate(self.signature_coords):
+                    if text.lower() in matching_text_keyword:
+                        signature_coordinates.append([self.signature_coords[i + 1][0], self.signature_coords[i + 1][1],
                                                    self.signature_coords[i + 1][2], self.signature_coords[i + 1][3] ])
-                    # signature_coordinates.append([self.signature_coords[i + 2][0], self.signature_coords[i + 2][1], 
-                    #                               self.signature_coords[i + 2][2], self.signature_coords[i + 2][3] ])
+                        # signature_coordinates.append([self.signature_coords[i + 2][0], self.signature_coords[i + 2][1], 
+                        #                               self.signature_coords[i + 2][2], self.signature_coords[i + 2][3] ])
             
-            if not signature_coordinates:
+                if not signature_coordinates:
+                    return result
+            
                 result = {
-                "Pancard Signature": "",
-                "coordinates": []
+                    "Pancard Signature": "User Signature",
+                    "coordinates": signature_coordinates
                 }
                 return result
-            
-            result = {
-                "Pancard Signature": "User Signature",
-                "coordinates": signature_coordinates
-            }
-            return result
 
-        else:
+            else:
 
-            """get the coordinates"""
-            for i,(x1, y1, x2, y2, text) in enumerate(self.signature_coords):
-                if text.lower() in matching_text_keyword:
-                    signature_coordinates.append([self.signature_coords[i - 1][0], self.signature_coords[i - 1][1], 
+                """get the coordinates"""
+                for i,(x1, y1, x2, y2, text) in enumerate(self.signature_coords):
+                    if text.lower() in matching_text_keyword:
+                        signature_coordinates.append([self.signature_coords[i - 1][0], self.signature_coords[i - 1][1], 
                                                   self.signature_coords[i - 1][2], self.signature_coords[i - 1][3] ])
-                    break
+                        break
             
-            if not signature_coordinates:
+                if not signature_coordinates:
+                    return result
+            
                 result = {
-                "Pancard Signature": "",
-                "coordinates": []
+                    "Pancard Signature": "User Signature",
+                    "coordinates": signature_coordinates
                 }
                 return result
-            
+        except Exception as error:
             result = {
-                "Pancard Signature": "User Signature",
-                "coordinates": signature_coordinates
-            }
-
+                    "Pancard Signature": "",
+                    "coordinates": []
+                    }
             return result
+
 
     """func: extract QR code"""
     def extract_qr_code(self):
-        result = {}
-        qrcode_coordinates = []
+        try:
+            result = {
+                "Pancard QR Code": "",
+                "coordinates": []
+            }
+            qrcode_coordinates = []
 
-        # Load the image
-        image = cv2.imread(self.document_path)
+            # Load the image
+            image = cv2.imread(self.document_path)
 
-        # Detect and decode QR codes
-        found_qrs = self.qreader.detect(image)
+            # Detect and decode QR codes
+            found_qrs = self.qreader.detect(image)
 
-        if not found_qrs:
+            if not found_qrs:
+                return result
+            
+            """get 50% of QR Code"""
+            for i in found_qrs:
+                x1, y1, x2, y2 = i['bbox_xyxy']
+                qrcode_coordinates.append([int(round(x1)), int(round(y1)), int(round(x2)), (int(round(y1)) + int(round(y2))) // 2])
+                #qrcode_coordinates.append([int(round(x1)), int(round(y1)), int(round(x2)), int(round(y2))])
+        
+            result = {
+                "QR-Code": f"Found {len(qrcode_coordinates)} QR Codes",
+                "coordinates": qrcode_coordinates
+            }
+            return result
+        except Exception as error:
             result = {
                 "Pancard QR Code": "",
                 "coordinates": []
             }
             return result
-        """get 50% of QR Code"""
-        for i in found_qrs:
-            x1, y1, x2, y2 = i['bbox_xyxy']
-            qrcode_coordinates.append([int(round(x1)), int(round(y1)), int(round(x2)), (int(round(y1)) + int(round(y2))) // 2])
-            #qrcode_coordinates.append([int(round(x1)), int(round(y1)), int(round(x2)), int(round(y2))])
-        
-        result = {
-            "QR-Code": f"Found {len(qrcode_coordinates)} QR Codes",
-            "coordinates": qrcode_coordinates
-        }
-        return result
-    
 
     """func: find matching text position"""
     def __find_matching_text(self, lines, matching_text_keyword):
@@ -327,12 +348,21 @@ class PancardDocumentInfo:
                 self.logger.error("| Pancard QR Code not found")
 
             """check pancard_doc_info_list"""
+            if pattern_number == 1:
+                all_lengths_zero = all(len(expression['coordinates']) == 0 for expression in [pancard_number, dob, username_p1, fathername_p1])
+                if all_lengths_zero:
+                    return {"message": "Unable to extract Pancard information", "status": "REJECTED"}
+            else:
+                all_lengths_zero = all(len(expression['coordinates']) == 0 for expression in [pancard_number, dob, username_p2, fathername_p2])
+                if all_lengths_zero:
+                    return {"message": "Unable to extract Pancard information", "status": "REJECTED"}
+
+            
             all_keys_and_coordinates_empty =  all(all(not v for v in d.values()) for d in pancard_doc_info_list)
             if all_keys_and_coordinates_empty:
                 return {"message": "Unable to extract Pancard information", "status": "REJECTED"}
             else:
                 return {"message": "Successfully Redacted PAN Card Document", "status": "REDACTED", "data": pancard_doc_info_list}
-
         else:
 
             """Collect: Pancard Number"""

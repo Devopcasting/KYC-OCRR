@@ -14,53 +14,60 @@ class PanCardPattern1:
     
     """func: extract username"""
     def extract_username_fathername_p1(self):
-        result = {}
-        matching_text_coords = []
+        try:
+            result = {
+                f"{self.LABEL_NAME}": "",
+                "coordinates": []
+            }
+            matching_text_coords = []
     
-        """split the text into lines"""
-        lines = [i for i in self.text.splitlines() if len(i) != 0]
+            """split the text into lines"""
+            lines = [i for i in self.text.splitlines() if len(i) != 0]
 
-        """find the matching text index"""
-        matching_text_index = self.__find_matching_text_index_username(lines, self.matching_text_keyword)
-        if matching_text_index == 404:
+            """find the matching text index"""
+            matching_text_index = self.__find_matching_text_index_username(lines, self.matching_text_keyword)
+            if matching_text_index == 404:
+                return result
+        
+            """get the next line of matching index"""
+            #next_line_list = lines[matching_text_index + 1].split()
+            for text in lines[matching_text_index + 1:]:
+                if text.isupper():
+                    next_line_list = text.split()
+                    break
+            
+            """remove special characters and white spaces"""
+            clean_next_line = [element for element in next_line_list if re.search(r'[a-zA-Z0-9]', element)]
+            user_name = " ".join(clean_next_line)
+            if len(clean_next_line) > 1:
+                clean_next_line = clean_next_line[:-1]
+        
+            """get the coordinates"""
+            for i,(x1,y1,x2,y2,text) in enumerate(self.coordinates):
+                if text in clean_next_line:
+                    matching_text_coords.append([x1, y1, x2, y2])
+                if len(matching_text_coords) == len(clean_next_line):
+                    break
+        
+            if len(matching_text_coords) > 1:
+                result = {
+                    f"{self.LABEL_NAME}": user_name,
+                    "coordinates": [[matching_text_coords[0][0], matching_text_coords[0][1], matching_text_coords[-1][2], matching_text_coords[-1][3]]]
+                }
+            else:
+                result = {
+                    f"{self.LABEL_NAME}": user_name,
+                    "coordinates": [[matching_text_coords[0][0], matching_text_coords[0][1], matching_text_coords[0][2], matching_text_coords[0][3]]]
+                }
+
+            return result
+        except Exception as error:
             result = {
                 f"{self.LABEL_NAME}": "",
                 "coordinates": []
             }
             return result
-        
-        """get the next line of matching index"""
-        #next_line_list = lines[matching_text_index + 1].split()
-        for text in lines[matching_text_index + 1:]:
-            if text.isupper():
-                next_line_list = text.split()
-                break
-            
-        """remove special characters and white spaces"""
-        clean_next_line = [element for element in next_line_list if re.search(r'[a-zA-Z0-9]', element)]
-        user_name = " ".join(clean_next_line)
-        if len(clean_next_line) > 1:
-            clean_next_line = clean_next_line[:-1]
-        
-        """get the coordinates"""
-        for i,(x1,y1,x2,y2,text) in enumerate(self.coordinates):
-            if text in clean_next_line:
-              matching_text_coords.append([x1, y1, x2, y2])
-            if len(matching_text_coords) == len(clean_next_line):
-                break
-        
-        if len(matching_text_coords) > 1:
-            result = {
-                f"{self.LABEL_NAME}": user_name,
-                "coordinates": [[matching_text_coords[0][0], matching_text_coords[0][1], matching_text_coords[-1][2], matching_text_coords[-1][3]]]
-            }
-        else:
-            result = {
-                f"{self.LABEL_NAME}": user_name,
-                "coordinates": [[matching_text_coords[0][0], matching_text_coords[0][1], matching_text_coords[0][2], matching_text_coords[0][3]]]
-            }
 
-        return result
     
     def __find_matching_text_index_username(self, lines: list, matching_text: list) -> int:
         matching_pattern = r"\b(?:" + "|".join(re.escape(word) for word in matching_text) + r")\b"
