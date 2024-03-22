@@ -40,9 +40,8 @@ class PerformOCRROnDocument:
             self.process_pancard(self.document_info['documentPath'], self.document_info['redactedPath'],
                                  self.document_info['documentName'], self.document_info['taskId'])
             
-            """Identify: Aadhaar Document"""
-        elif document_identification_obj.identify_aadhaarcard_format():
-
+            """Identify: Aadhaar Document""" 
+        elif document_identification_obj.identify_aadhaarcard_format(): 
             if document_identification_obj.identify_eaadhaarcard():
                 self.process_e_aadhaarcard(self.document_info['documentPath'], self.document_info['redactedPath'],
                                  self.document_info['documentName'], self.document_info['taskId'])
@@ -72,7 +71,7 @@ class PerformOCRROnDocument:
         self.remove_collection_data_from_ocrrworkspace(self.document_info['taskId'])
 
         """Send Post request to webhook"""
-        #self.webhook_post_request(self.document_info['taskId'])
+        self.webhook_post_request(self.document_info['taskId'])
     
     
     """Process: Pancard Document"""
