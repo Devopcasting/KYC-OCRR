@@ -41,171 +41,204 @@ class EPancardDocumentInfo:
     
     """func: extract PAN Card number"""
     def extract_pancard_number(self) -> dict:
-        result = {}
-        pancard_text = ""
-        pancard_coordinates = []
+        try:
+            result = {
+                "E-Pancard Number": "",
+                "coordinates": []
+            }
+            pancard_text = ""
+            pancard_coordinates = []
         
-        for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
-            if len(text) == 10 and text.isupper() and text.isalnum() and any(char.isdigit() for char in text):
-                pancard_coordinates.append([x1, y1, x2, y2])
-                pancard_text = text
+            for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
+                if len(text) == 10 and text.isupper() and text.isalnum() and any(char.isdigit() for char in text):
+                    pancard_coordinates.append([x1, y1, x2, y2])
+                    pancard_text = text
         
-        if not pancard_coordinates:
+            if not pancard_coordinates:
+                return result
+        
+            width = pancard_coordinates[0][2] - pancard_coordinates[0][0]
+            result = {
+                "E-Pancard Number": pancard_text,
+                "coordinates": [[pancard_coordinates[0][0], pancard_coordinates[0][1], 
+                       pancard_coordinates[0][0] + int(0.65 * width),pancard_coordinates[0][3]]]
+            }
+            return result
+        except Exception as error:
             result = {
                 "E-Pancard Number": "",
                 "coordinates": []
             }
             return result
-        
-        width = pancard_coordinates[0][2] - pancard_coordinates[0][0]
-        result = {
-            "E-Pancard Number": pancard_text,
-            "coordinates": [[pancard_coordinates[0][0], pancard_coordinates[0][1], 
-                       pancard_coordinates[0][0] + int(0.65 * width),pancard_coordinates[0][3]]]
-        }
-        return result
+
     
     """func: extract dob"""
     def extract_dob(self):
-        result = {}
-        dob_text = ""
-        dob_coordinates = []
+        try:
+            result = {
+                "E-Pancard DOB": "",
+                "coordinates": []
+            }
+            dob_text = ""
+            dob_coordinates = []
 
-        """Data patterns: DD/MM/YYY, DD-MM-YYY"""
-        date_pattern = r'\d{2}/\d{2}/\d{4}|\d{2}-\d{2}-\d{4}'
+            """Data patterns: DD/MM/YYY, DD-MM-YYY"""
+            date_pattern = r'\d{2}/\d{2}/\d{4}|\d{2}-\d{2}-\d{4}'
 
-        for i, (x1, y1, x2, y2, text) in enumerate(self.coordinates):
-            match = re.search(date_pattern, text)
-            if match:
-                dob_coordinates = [x1, y1, x2, y2]
-                dob_text = text
-                break
-        if not dob_coordinates:
+            for i, (x1, y1, x2, y2, text) in enumerate(self.coordinates):
+                match = re.search(date_pattern, text)
+                if match:
+                    dob_coordinates = [x1, y1, x2, y2]
+                    dob_text = text
+                    break
+            if not dob_coordinates:
+                return result
+        
+            """Get first 6 chars"""
+            width = dob_coordinates[2] - dob_coordinates[0]
+            result = {
+                "E-Pancard DOB": dob_text,
+                "coordinates": [[dob_coordinates[0], dob_coordinates[1], dob_coordinates[0] + int(0.54 * width), dob_coordinates[3]]]
+            }
+            return result
+        except Exception as error:
             result = {
                 "E-Pancard DOB": "",
                 "coordinates": []
             }
             return result
-        
-        """Get first 6 chars"""
-        width = dob_coordinates[2] - dob_coordinates[0]
-        result = {
-            "E-Pancard DOB": dob_text,
-            "coordinates": [[dob_coordinates[0], dob_coordinates[1], dob_coordinates[0] + int(0.54 * width), dob_coordinates[3]]]
-        }
-        return result
+
         
     """func: extract gender"""
     def extract_gender(self):
-        result = {}
-        gender_text = ""
-        gender_coordinates = []
+        try:
+            result = {
+                "E-Pancard Gender": "",
+                "coordinates": []
+            }
+            gender_text = ""
+            gender_coordinates = []
 
-        gender_pattern = r"male|female"
-        for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
-            if re.search(gender_pattern, text, flags=re.IGNORECASE):
-                gender_coordinates.append([x1, y1, x2, y2])
-                gender_text = text
-                break
-        if not gender_coordinates:
+            gender_pattern = r"male|female"
+            for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
+                if re.search(gender_pattern, text, flags=re.IGNORECASE):
+                    gender_coordinates.append([x1, y1, x2, y2])
+                    gender_text = text
+                    break
+            if not gender_coordinates:
+                return result
+            
+            result = {
+                "E-Pancard Gender": gender_text,
+                "coordinates": gender_coordinates
+            }
+            return result
+        except Exception as error:
             result = {
                 "E-Pancard Gender": "",
                 "coordinates": []
             }
             return result
-        result = {
-            "E-Pancard Gender": gender_text,
-            "coordinates": gender_coordinates
-        }
-        return result
+
     
     """func: extract name"""
     def extract_name(self):
-        result = {}
-        name_text = ""
-        name_coordinates = []
-        matching_name_list = []
+        try:
+            result = {
+                "E-Pancard Name": "",
+                "coordinates": []
+            }
+            name_text = ""
+            name_coordinates = []
+            matching_name_list = []
 
-        clean_text = [i for i in self.text_data.split("\n") if len(i) != 0]
-        for i,text in enumerate(clean_text):
-            if 'ata /Name' in text:
-                matching_name_list = clean_text[i + 1].split()
-                name_text = clean_text[i + 1]
-                break
+            clean_text = [i for i in self.text_data.split("\n") if len(i) != 0]
+            for i,text in enumerate(clean_text):
+                if 'ata /Name' in text:
+                    matching_name_list = clean_text[i + 1].split()
+                    name_text = clean_text[i + 1]
+                    break
         
-        if not matching_name_list:
+            if not matching_name_list:
+                return result
+        
+            if len(matching_name_list) > 1:
+                matching_name_list = matching_name_list[:-1]
+
+            """get the coordinates"""
+            for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
+                if text in matching_name_list:
+                    name_coordinates.append([x1, y1, x2, y2])
+                if len(matching_name_list) == len(name_coordinates):
+                    break
+        
+            if len(name_coordinates) > 1:
+                result = {
+                    "E-Pancard Name": name_text,
+                    "coordinates": [[name_coordinates[0][0], name_coordinates[0][1], name_coordinates[-1][2], name_coordinates[-1][3]]]
+                }
+            else:
+                result = {
+                    "E-Pancard Name": name_text,
+                    "coordinates": [[name_coordinates[0][0], name_coordinates[0][1], name_coordinates[0][2], name_coordinates[0][3]]]
+                }
+            return result
+        except Exception as error:
             result = {
                 "E-Pancard Name": "",
                 "coordinates": []
             }
             return result
-        
-        if len(matching_name_list) > 1:
-            matching_name_list = matching_name_list[:-1]
-
-        """get the coordinates"""
-        for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
-            if text in matching_name_list:
-                name_coordinates.append([x1, y1, x2, y2])
-            if len(matching_name_list) == len(name_coordinates):
-                break
-        
-        if len(name_coordinates) > 1:
-            result = {
-                "E-Pancard Name": name_text,
-                "coordinates": [[name_coordinates[0][0], name_coordinates[0][1], name_coordinates[-1][2], name_coordinates[-1][3]]]
-            }
-        else:
-            result = {
-                "E-Pancard Name": name_text,
-                "coordinates": [[name_coordinates[0][0], name_coordinates[0][1], name_coordinates[0][2], name_coordinates[0][3]]]
-            }
-        return result
-    
 
     """func: extract father name"""
     def extract_father_name(self):
-        result = {}
-        father_name_text = ""
-        father_name_coordinates = []
-        matching_name_list = []
+        try:
+            result = {
+                "E-Pancard Father's Name": "",
+                "coordinates": []
+            }
+            father_name_text = ""
+            father_name_coordinates = []
+            matching_name_list = []
 
-        clean_text = [i for i in self.text_data.split("\n") if len(i) != 0]
-        for i,text in enumerate(clean_text):
-            if 'Father' in text:
-                matching_name_list = clean_text[i + 1].split()
-                father_name_text = clean_text[i + 1]
-                break
+            clean_text = [i for i in self.text_data.split("\n") if len(i) != 0]
+            for i,text in enumerate(clean_text):
+                if 'Father' in text:
+                    matching_name_list = clean_text[i + 1].split()
+                    father_name_text = clean_text[i + 1]
+                    break
         
-        if not matching_name_list:
+            if not matching_name_list:
+                return result
+        
+            if len(matching_name_list) > 1:
+                matching_name_list = matching_name_list[:-1]
+
+            """get the coordinates"""
+            for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
+                if text in matching_name_list:
+                    father_name_coordinates.append([x1, y1, x2, y2])
+                if len(matching_name_list) == len(father_name_coordinates):
+                    break
+        
+            if len(father_name_coordinates) > 1:
+                result = {
+                    "E-Pancard Father's Name": father_name_text,
+                    "coordinates": [[father_name_coordinates[0][0], father_name_coordinates[0][1], father_name_coordinates[-1][2], father_name_coordinates[-1][3]]]
+                }
+            else:
+                result = {
+                    "E-Pancard Father's Name": father_name_text,
+                    "coordinates": [[father_name_coordinates[0][0], father_name_coordinates[0][1], father_name_coordinates[0][2], father_name_coordinates[0][3]]]
+                }
+            return result
+        except Exception as error:
             result = {
                 "E-Pancard Father's Name": "",
                 "coordinates": []
             }
             return result
-        
-        if len(matching_name_list) > 1:
-            matching_name_list = matching_name_list[:-1]
 
-        """get the coordinates"""
-        for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
-            if text in matching_name_list:
-                father_name_coordinates.append([x1, y1, x2, y2])
-            if len(matching_name_list) == len(father_name_coordinates):
-                break
-        
-        if len(father_name_coordinates) > 1:
-            result = {
-                "E-Pancard Father's Name": father_name_text,
-                "coordinates": [[father_name_coordinates[0][0], father_name_coordinates[0][1], father_name_coordinates[-1][2], father_name_coordinates[-1][3]]]
-            }
-        else:
-            result = {
-                "E-Pancard Father's Name": father_name_text,
-                "coordinates": [[father_name_coordinates[0][0], father_name_coordinates[0][1], father_name_coordinates[0][2], father_name_coordinates[0][3]]]
-            }
-        return result
-    
     """func: redact bottom pancard"""
     def redact_bottom_pancard(self):
         result = {}
