@@ -24,85 +24,98 @@ class CDSLInfo:
 
     """func: extract PANCARD number"""
     def extract_pancard_number(self):
-        result = {}
-        pancard_text = ""
-        pancard_coordinates = []
+        try:
+            result = {
+                "CDSL Pancard Number": "",
+                "coordinates": []
+            }
+            pancard_text = ""
+            pancard_coordinates = []
 
-        """get the coordinates"""
-        for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates_default):
-            if len(text) == 10 and text.isupper() and text.isalnum():
-                pancard_text = text
-                pancard_coordinates = [x1, y1, x2, y2]
-                break
+            """get the coordinates"""
+            for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates_default):
+                if len(text) == 10 and text.isupper() and text.isalnum():
+                    pancard_text = text
+                    pancard_coordinates = [x1, y1, x2, y2]
+                    break
         
-        if not pancard_coordinates:
+            if not pancard_coordinates:
+                return result
+        
+            width = pancard_coordinates[2] - pancard_coordinates[0]
+            result = {
+                "Pancard Number": pancard_text,
+                "coordinates": [[pancard_coordinates[0], pancard_coordinates[1], 
+                       pancard_coordinates[0] + int(0.65 * width),pancard_coordinates[3]]]
+            }
+            return result
+        except Exception as error:
             result = {
                 "CDSL Pancard Number": "",
                 "coordinates": []
             }
             return result
-        
-        width = pancard_coordinates[2] - pancard_coordinates[0]
-        result = {
-            "Pancard Number": pancard_text,
-            "coordinates": [[pancard_coordinates[0], pancard_coordinates[1], 
-                       pancard_coordinates[0] + int(0.65 * width),pancard_coordinates[3]]]
-        }
 
-        return result
 
     """func: extract NAME"""
     def extract_name(self):
-        result = {}
-        name_text = ""
-        matching_text_coords = []
-        next_line = []
+        try:
+            result = {
+                "CDSL Name": "",
+                "coordinates": []
+            }
+            name_text = ""
+            matching_text_coords = []
+            next_line = []
 
-        """split the text into lines"""
-        lines = [i for i in self.text_data.splitlines() if len(i) != 0]
+            """split the text into lines"""
+            lines = [i for i in self.text_data.splitlines() if len(i) != 0]
 
-        """get the matching """
-        pattern = r"\b(?:pan no)\b"
-        for i, line in enumerate(lines):
-            match = re.search(pattern, line.lower(), flags=re.IGNORECASE)
-            if match:
-                next_line = lines[i + 1].split()
-                break
+            """get the matching """
+            pattern = r"\b(?:pan no)\b"
+            for i, line in enumerate(lines):
+                match = re.search(pattern, line.lower(), flags=re.IGNORECASE)
+                if match:
+                    next_line = lines[i + 1].split()
+                    break
         
-        if not next_line:
+            if not next_line:
+                return result
+
+            for i in next_line:
+                if i.lower() in ['name', ':']:
+                    next_line.remove(i)
+
+            name_text = " ".join(next_line)
+
+            if len(next_line) > 1:
+                next_line = next_line[:-1]                
+
+            """get the coordinates"""
+            for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates_default):
+                if text in next_line:
+                    matching_text_coords.append([x1, y1, x2, y2])
+                if len(next_line) == len(matching_text_coords):
+                    break
+        
+            if len(matching_text_coords) > 1:
+                result = {
+                    "CDSL Name": name_text,
+                    "coordinates": [[matching_text_coords[0][0], matching_text_coords[0][1], matching_text_coords[-1][2], matching_text_coords[-1][3]]]
+                }
+            else:
+                result = {
+                    "CDSL Name": name_text,
+                    "coordinates": [[matching_text_coords[0][0], matching_text_coords[0][1], matching_text_coords[0][2], matching_text_coords[0][3]]]
+                }
+            return result
+        except Exception as error:
             result = {
                 "CDSL Name": "",
                 "coordinates": []
             }
             return result
 
-        for i in next_line:
-            if i.lower() in ['name', ':']:
-                next_line.remove(i)
-
-        name_text = " ".join(next_line)
-
-        if len(next_line) > 1:
-            next_line = next_line[:-1]                
-
-        """get the coordinates"""
-        for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates_default):
-            if text in next_line:
-                matching_text_coords.append([x1, y1, x2, y2])
-            if len(next_line) == len(matching_text_coords):
-                break
-        
-        if len(matching_text_coords) > 1:
-            result = {
-                "CDSL Name": name_text,
-                "coordinates": [[matching_text_coords[0][0], matching_text_coords[0][1], matching_text_coords[-1][2], matching_text_coords[-1][3]]]
-            }
-        else:
-            result = {
-                "CDSL Name": name_text,
-                "coordinates": [[matching_text_coords[0][0], matching_text_coords[0][1], matching_text_coords[0][2], matching_text_coords[0][3]]]
-            }
-        return result
 
     """func: collect CDSL info"""
     def collect_cdsl_info(self):
