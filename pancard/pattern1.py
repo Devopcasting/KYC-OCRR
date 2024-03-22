@@ -20,6 +20,7 @@ class PanCardPattern1:
                 "coordinates": []
             }
             matching_text_coords = []
+            next_line_list = ''
     
             """split the text into lines"""
             lines = [i for i in self.text.splitlines() if len(i) != 0]
@@ -35,6 +36,9 @@ class PanCardPattern1:
                 if text.isupper():
                     next_line_list = text.split()
                     break
+                
+            if not next_line_list:
+                return result
             
             """remove special characters and white spaces"""
             clean_next_line = [element for element in next_line_list if re.search(r'[a-zA-Z0-9]', element)]

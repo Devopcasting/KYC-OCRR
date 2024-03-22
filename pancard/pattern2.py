@@ -18,6 +18,7 @@ class PanCardPattern2:
                 "coordinates": []
             }
             matching_text_coords = []
+            next_line_list = ''
 
             matching_text_keyword = ['OF INDIA', "GOVT. OF INDIA"," GOVT.", "INDIA", "INCOME", "TAX", "DEPARTMENT", "DEPARTNENT", "INCOME TAX DEPARTNENT"]
 
