@@ -28,435 +28,484 @@ class PassportDocumentInfo:
                        'goa', 'gujarat', 'haryana', 'himachal pradesh', 'jammu and kashmir', 'jharkhand', 
                        'karnataka', 'kerala', 'lakshadweep (ut)', 'madhya pradesh', 'maharashtra', 'manipur', 
                        'meghalaya', 'mizoram', 'nagaland', 'odisha', 'puducherry (ut)', 'punjab', 'rajasthan', 
-                       'sikkim', 'tamil nadu', 'telangana', 'tripura', 'uttarakhand', 'uttar pradesh', 'mumbai']
+                       'sikkim', 'tamil nadu', 'telangana', 'tripura', 'uttarakhand', 'uttar pradesh', 'mumbai',
+                       'chennai', 'delhi', 'new delhi', 'navi mumbai', 'thane']
     
     """func: extract passport number"""
     def extract_passport_number(self):
-        result =  {}
-        passport_number = ""
-        matching_line_index_top = None
-        matching_line_index_bottom = None
-        matching_passport_text = None
-        matching_text_regex = r"passport"
-        matching_passport_number_coords_top = []
-        matching_passport_number_coords_bottom = []
+        try:
+            result = {
+                "Passport Number": "",
+                "coordinates": []
+            }
+            passport_number = ""
+            matching_line_index_top = None
+            matching_line_index_bottom = None
+            matching_passport_text = None
+            matching_text_regex = r"passport"
+            matching_passport_number_coords_top = []
+            matching_passport_number_coords_bottom = []
 
-        """find matching text index"""
-        for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
-            if re.search(matching_text_regex, text.lower(), flags=re.IGNORECASE):
-                matching_line_index_top = i
-                break
-        if matching_line_index_top is None:
-            result = {
-                "Passport Number": "",
-                "coordinates": []
-            }
-            return result
+            """find matching text index"""
+            for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
+                if re.search(matching_text_regex, text.lower(), flags=re.IGNORECASE):
+                    matching_line_index_top = i
+                    break
+            if matching_line_index_top is None:
+                return result
         
-        """get the top passport number coordinates"""
-        for i in range(matching_line_index_top, len(self.coordinates)):
-            text = self.coordinates[i][4]
-            if len(text) == 8 and text.isupper() and text.isalnum():
-                matching_passport_number_coords_top = [self.coordinates[i][0], self.coordinates[i][1],
+            """get the top passport number coordinates"""
+            for i in range(matching_line_index_top, len(self.coordinates)):
+                text = self.coordinates[i][4]
+                if len(text) == 8 and text.isupper() and text.isalnum():
+                    matching_passport_number_coords_top = [self.coordinates[i][0], self.coordinates[i][1],
                                          self.coordinates[i][2], self.coordinates[i][3]]
-                matching_line_index_bottom = i
-                matching_passport_text = text
-                passport_number = text
-                break
-        if matching_line_index_bottom is None:
+                    matching_line_index_bottom = i
+                    matching_passport_text = text
+                    passport_number = text
+                    break
+            if matching_line_index_bottom is None:
+                return result
+                
+            """get the bottom passport number coordinates"""
+            for i in range(matching_line_index_bottom + 1, len(self.coordinates)):
+                text = self.coordinates[i][4]
+                if matching_passport_text in text:
+                    matching_passport_number_coords_bottom = [self.coordinates[i][0], self.coordinates[i][1],
+                                         self.coordinates[i][2], self.coordinates[i][3]]
+                    break
+            if matching_passport_number_coords_bottom:
+                result = {
+                    "Passport Number": passport_number,
+                    "coordinates": [matching_passport_number_coords_top, matching_passport_number_coords_bottom]
+                }
+            else:
+                result = {
+                    "Passport Number": passport_number,
+                    "coordinates": [matching_passport_number_coords_top]
+                }
+            return result
+        except Exception as error:
             result = {
                 "Passport Number": "",
                 "coordinates": []
             }
             return result
-                
-        """get the bottom passport number coordinates"""
-        for i in range(matching_line_index_bottom + 1, len(self.coordinates)):
-            text = self.coordinates[i][4]
-            if matching_passport_text in text:
-                 matching_passport_number_coords_bottom = [self.coordinates[i][0], self.coordinates[i][1],
-                                         self.coordinates[i][2], self.coordinates[i][3]]
-                 break
-        if matching_passport_number_coords_bottom:
-            result = {
-                "Passport Number": passport_number,
-                "coordinates": [matching_passport_number_coords_top, matching_passport_number_coords_bottom]
-            }
-        else:
-            result = {
-                "Passport Number": passport_number,
-                "coordinates": [matching_passport_number_coords_top]
-            }
-        return result
+
     
     """func: extract dates"""
     def extract_dates(self):
-        result = {}
-        date_text = ""
-        date_coords = []
-        date_coordinates = []
+        try:
+            result = {
+                "Passport Dates": "",
+                "coordinates": []
+                }
+            date_text = ""
+            date_coords = []
+            date_coordinates = []
 
-        """date pattern"""
-        date_pattern = r'\d{2}/\d{2}/\d{4}'
+            """date pattern"""
+            date_pattern = r'\d{2}/\d{2}/\d{4}'
 
-        """get the coordinates"""
-        for i, (x1,y1,x2,y2,text) in enumerate(self.coordinates):
-            date_match = re.search(date_pattern, text)
-            if date_match:
-                date_coords.append([x1, y1, x2, y2])
-                date_text += " "+ text
+            """get the coordinates"""
+            for i, (x1,y1,x2,y2,text) in enumerate(self.coordinates):
+                date_match = re.search(date_pattern, text)
+                if date_match:
+                    date_coords.append([x1, y1, x2, y2])
+                    date_text += " "+ text
         
-        if not date_coords:
+            if not date_coords:
+                return result
+        
+            """get the first 6 chars"""
+            for i in date_coords:
+                width = i[2] - i[0]
+                date_coordinates.append([i[0], i[1], i[0] + int(0.54 * width), i[3]])
+            
+            result = {
+                "Dates": date_text,
+                "coordinates": date_coordinates
+            }
+            return result
+        except Exception as error:
             result = {
                 "Passport Dates": "",
                 "coordinates": []
             }
             return result
-        
-        """get the first 6 chars"""
-        for i in date_coords:
-            width = i[2] - i[0]
-            date_coordinates.append([i[0], i[1], i[0] + int(0.54 * width), i[3]])
-        
-        result = {
-            "Dates": date_text,
-            "coordinates": date_coordinates
-        }
 
-        return result
 
     """func: extract gender"""
     def extract_gender(self):
-        result = {}
-        gender_text = ""
-        matching_text_keyword = ['M', 'F']
-        gender_coordinates = []
+        try:
+            result = {
+                "Passport Gender": "",
+                "coordinates": []
+            }
+            gender_text = ""
+            matching_text_keyword = ['M', 'F']
+            gender_coordinates = []
 
-        """get the coordinates"""
-        for i, (x1,y1,x2,y2,text) in enumerate(self.coordinates):
-            if text in matching_text_keyword:
-                gender_coordinates = [x1, y1, x2, y2]
-                gender_text = text
-                break
-        if not gender_coordinates:
+            """get the coordinates"""
+            for i, (x1,y1,x2,y2,text) in enumerate(self.coordinates):
+                if text in matching_text_keyword:
+                    gender_coordinates = [x1, y1, x2, y2]
+                    gender_text = text
+                    break
+            if not gender_coordinates:
+                return result
+        
+            result = {
+                "Passport Gender": gender_text,
+                "coordinates": [gender_coordinates]
+            }
+            return result
+        except Exception as error:
             result = {
                 "Passport Gender": "",
                 "coordinates": []
             }
             return result
-        
-        result = {
-            "Passport Gender": gender_text,
-            "coordinates": [gender_coordinates]
-        }
-        return result
+
 
     """func: extract surname"""
     def extract_surname(self):
-        result = {}
-        surname_text = ""
-        surname_coords = []
-        surname_coordinates = []
-        matching_text = "Surname"
+        try:
+            result = {
+                "Passport Surname": "",
+                "coordinates": []
+            }
+            surname_text = ""
+            surname_coords = []
+            surname_coordinates = []
+            matching_text = "Surname"
 
-        """clean text"""
-        clean_text = [i for i in self.text_data.split("\n") if len(i) != 0]
+            """clean text"""
+            clean_text = [i for i in self.text_data.split("\n") if len(i) != 0]
 
-        """find the line that matches search text"""
-        matching_text_index = self.__find_matching_line_index(clean_text, matching_text)
-        if matching_text_index == 0:
+            """find the line that matches search text"""
+            matching_text_index = self.__find_matching_line_index(clean_text, matching_text)
+            if matching_text_index == 0:
+                return result
+        
+            """get the next line in the text"""
+            next_line_list = []
+            for line in clean_text[matching_text_index + 2 :]:
+                if line.lower() in 'faa ora arr /given names':
+                    break
+                else:
+                    next_line_list.append(line)
+            if not next_line_list:
+                return result
+        
+            """get the coordinates"""
+            for i in next_line_list:
+                for k, (x1, y1, x2, y2, text) in enumerate(self.coordinates):
+                    if i == text:
+                        surname_coords.append([x1, y1, x2, y2])
+                        surname_text = text
+        
+            for i in surname_coords:
+                width = i[2] - i[0]
+                surname_coordinates.append([i[0], i[1], i[0] + int(0.40 * width), i[3]])
+        
+            result = {
+                "Passport Surname": surname_text,
+                "coordinates": surname_coordinates
+            }
+
+            return result
+        except Exception as error:
             result = {
                 "Passport Surname": "",
                 "coordinates": []
             }
             return result
-        
-        """get the next line in the text"""
-        next_line_list = []
-        for line in clean_text[matching_text_index + 2 :]:
-            if line.lower() in 'faa ora arr /given names':
-                break
-            else:
-                next_line_list.append(line)
-        if not next_line_list:
-            result = {
-                "Passport Surname": "",
-                "coordinates": []
-            }
-            return result
-        
-        """get the coordinates"""
-        for i in next_line_list:
-            for k, (x1, y1, x2, y2, text) in enumerate(self.coordinates):
-                if i == text:
-                    surname_coords.append([x1, y1, x2, y2])
-                    surname_text = text
-        
-        for i in surname_coords:
-            width = i[2] - i[0]
-            surname_coordinates.append([i[0], i[1], i[0] + int(0.40 * width), i[3]])
-        
-        result = {
-            "Passport Surname": surname_text,
-            "coordinates": surname_coordinates
-        }
 
-        return result
     
     """func: extract given name"""
     def extract_given_name(self):
-        result = {}
-        given_name_text = ""
-        given_name_cords = []
-        given_name_coordinates = []
-        matching_text = 'Names'
+        try:
+            result = {
+                "Passport Given Name": "",
+                "coordinates": []
+            }
+            given_name_text = ""
+            given_name_cords = []
+            given_name_coordinates = []
+            matching_text = 'Names'
 
-        """split clean text"""
-        clean_text = [i for i in self.text_data.splitlines() if len(i) != 0]
+            """split clean text"""
+            clean_text = [i for i in self.text_data.splitlines() if len(i) != 0]
 
-        """find the line that matches the text"""
-        matching_line_index = self.__find_matching_line_index(clean_text, matching_text)
-        if matching_line_index == 0:
+            """find the line that matches the text"""
+            matching_line_index = self.__find_matching_line_index(clean_text, matching_text)
+            if matching_line_index == 0:
+                return result
+        
+            """get the next line in the text"""
+            next_line_list = []
+            for line in clean_text[matching_line_index + 1 :]:
+                if line.lower() in 'fier /sex':
+                    break
+                else:
+                    next_line_list.append(line)
+
+            if not next_line_list:
+                return result
+        
+            """get the coordinates"""
+            for i in next_line_list:
+                for k, (x1, y1, x2, y2, text) in enumerate(self.coordinates):
+                    if i == text:
+                        given_name_cords.append([x1, y1, x2, y2])
+                        given_name_text += " "+text
+        
+            for i in given_name_cords:
+                width = i[2] - i[0]
+                given_name_coordinates.append([i[0], i[1], i[0] + int(0.40 * width), i[3]])
+        
+            result = {
+                "Passport Given Name": given_name_text,
+                "coordinates": given_name_coordinates
+            }
+
+            return result
+        except Exception as error:
             result = {
                 "Passport Given Name": "",
                 "coordinates": []
             }
             return result
-        
-        """get the next line in the text"""
-        next_line_list = []
-        for line in clean_text[matching_line_index + 1 :]:
-            if line.lower() in 'fier /sex':
-                break
-            else:
-                next_line_list.append(line)
 
-        if not next_line_list:
-            result = {
-                "Passport Given Name": "",
-                "coordinates": []
-            }
-            return result
-        
-        """get the coordinates"""
-        for i in next_line_list:
-            for k, (x1, y1, x2, y2, text) in enumerate(self.coordinates):
-                if i == text:
-                    given_name_cords.append([x1, y1, x2, y2])
-                    given_name_text += " "+text
-        
-        for i in given_name_cords:
-            width = i[2] - i[0]
-            given_name_coordinates.append([i[0], i[1], i[0] + int(0.40 * width), i[3]])
-        
-        result = {
-            "Passport Given Name": given_name_text,
-            "coordinates": given_name_coordinates
-        }
-
-        return result
 
     """func: extract father name"""
     def extract_father_name(self):
-        result = {}
-        father_name_text = ""
-        matching_text = "Father"
-        father_name_coords = []
-        father_name_coordinates = []
-
-        """split clean text"""
-        clean_text = [i for i in self.text_data.splitlines() if len(i) != 0]
-
-        """find the line that matches the text"""
-        matching_line_index = self.__find_matching_line_index(clean_text, matching_text)
-        if matching_line_index == 0:
+        try:
             result = {
                 "Passport Father Name": "",
                 "coordinates": []
             }
-            return result
-        
-        """get the next line in the text"""
-        next_line_list = []
-        for line in clean_text[matching_line_index + 1 :]:
-            if "mother" in line.lower():
-                break
-            else:
-                next_line_list.extend(line.split())
-        if not next_line_list:
-            result = {
-                "Passport Father Name": "",
-                "coordinates": []
-            }
-            return result
-        
-        """get the coordinates"""
-        if len(next_line_list) > 1:
-            next_line_list = next_line_list[:-1]
+            father_name_text = ""
+            matching_text = "Father"
+            father_name_coords = []
+            father_name_coordinates = []
 
-        for i in next_line_list:
-            for k, (x1, y1, x2, y2, text) in enumerate(self.coordinates):
-                if i == text:
-                    father_name_coords.append([x1, y1, x2, y2])
-                    father_name_text += " "+text
-                if len(next_line_list) == len(father_name_coords):
+            """split clean text"""
+            clean_text = [i for i in self.text_data.splitlines() if len(i) != 0]
+
+            """find the line that matches the text"""
+            matching_line_index = self.__find_matching_line_index(clean_text, matching_text)
+            if matching_line_index == 0:
+                return result
+        
+            """get the next line in the text"""
+            next_line_list = []
+            for line in clean_text[matching_line_index + 1 :]:
+                if "mother" in line.lower():
                     break
+                else:
+                    next_line_list.extend(line.split())
+            if not next_line_list:
+                return result
         
-        for i in father_name_coords:
-            width = i[2] - i[0]
-            father_name_coordinates.append([i[0], i[1], i[0] + int(0.40 * width), i[3]])
-        
-        result = {
-            "Passport Father Name": father_name_text,
-            "coordinates": father_name_coordinates
-        }
+            """get the coordinates"""
+            if len(next_line_list) > 1:
+                next_line_list = next_line_list[:-1]
 
-        return result
+            for i in next_line_list:
+                for k, (x1, y1, x2, y2, text) in enumerate(self.coordinates):
+                    if i == text:
+                        father_name_coords.append([x1, y1, x2, y2])
+                        father_name_text += " "+text
+                    if len(next_line_list) == len(father_name_coords):
+                        break
+        
+            for i in father_name_coords:
+                width = i[2] - i[0]
+                father_name_coordinates.append([i[0], i[1], i[0] + int(0.40 * width), i[3]])
+        
+            result = {
+                "Passport Father Name": father_name_text,
+                "coordinates": father_name_coordinates
+            }
+            return result
+        except Exception as error:
+            result = {
+                "Passport Father Name": "",
+                "coordinates": []
+            }
+            return result
+
 
     """func: extract mother name"""
     def extract_mother_name(self):
-        result = {}
-        matching_text = "Mother"
-        mother_coords = []
-        mother_text = ""
-        mother_coordinates = []
-
-        """split clean text"""
-        clean_text = [i for i in self.text_data.splitlines() if len(i) != 0]
-
-        # find the line that matches search text
-        matching_line_index = self.__find_matching_line_index(clean_text, matching_text)
-        if matching_line_index == 0:
+        try:
             result = {
                 "Passport Mother Name": "",
                 "coordinates": []
             }
-            return result
-        
-        """get the next line in the text"""
-        next_line_list = []
-        for line in clean_text[matching_line_index + 1 :]:
-            if "af ar of a ora /name of spouse" in line.lower():
-                break
-            else:
-                next_line_list.extend(line.split())
-        if not next_line_list:
-            result = {
-                "Passport Mother Name": "",
-                "coordinates": []
-            }
-            return result
-        
-        """get the coordinates"""
-        if len(next_line_list) > 1:
-            next_line_list = next_line_list[:-1]
+            matching_text = "Mother"
+            mother_coords = []
+            mother_text = ""
+            mother_coordinates = []
 
-        for i in next_line_list:
-            for k, (x1, y1, x2, y2, text) in enumerate(self.coordinates):
-                if i == text:
-                    mother_coords.append([x1, y1, x2, y2])
-                    mother_text += " "+text
-                if len(next_line_list) == len(mother_coords):
+            """split clean text"""
+            clean_text = [i for i in self.text_data.splitlines() if len(i) != 0]
+
+            # find the line that matches search text
+            matching_line_index = self.__find_matching_line_index(clean_text, matching_text)
+            if matching_line_index == 0:
+                return result
+        
+            """get the next line in the text"""
+            next_line_list = []
+            for line in clean_text[matching_line_index + 1 :]:
+                if "af ar of a ora /name of spouse" in line.lower():
                     break
+                else:
+                    next_line_list.extend(line.split())
+            if not next_line_list:
+                return result
         
-        for i in mother_coords:
-            width = i[2] - i[0]
-            mother_coordinates.append([i[0], i[1], i[0] + int(0.40 * width), i[3]])
-        
-        result = {
-            "Passport Mother Name": mother_text,
-            "coordinates": mother_coordinates
-        }
+            """get the coordinates"""
+            if len(next_line_list) > 1:
+                next_line_list = next_line_list[:-1]
 
-        return result
+            for i in next_line_list:
+                for k, (x1, y1, x2, y2, text) in enumerate(self.coordinates):
+                    if i == text:
+                        mother_coords.append([x1, y1, x2, y2])
+                        mother_text += " "+text
+                    if len(next_line_list) == len(mother_coords):
+                        break
+        
+            for i in mother_coords:
+                width = i[2] - i[0]
+                mother_coordinates.append([i[0], i[1], i[0] + int(0.40 * width), i[3]])
+        
+            result = {
+                "Passport Mother Name": mother_text,
+                "coordinates": mother_coordinates
+            }
+            return result
+        except Exception as error:
+            result = {
+                "Passport Mother Name": "",
+                "coordinates": []
+            }
+            return result
+
     
     """func: extract ind-name"""
     def extract_ind_name(self):
-        result = {}
-        ind_name_text = ""
-        ind_name_cords = []
-        ind_name_coordinates = []
-        matching_text = 'IND'
+        try:
+            result = {
+                "Passport IND Name": "",
+                "coordinates": []
+            }
+            ind_name_text = ""
+            ind_name_cords = []
+            ind_name_coordinates = []
 
-        """get the coordinates"""
-        for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
-            if "IND" in text and '<' in text:
-                ind_name_cords.append([x1, y1, x2, y2])
-                ind_name_text += " "+text
-                break
-        if not ind_name_cords:
+            """get the coordinates"""
+            for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
+                if "IND" in text and '<' in text:
+                    ind_name_cords.append([x1, y1, x2, y2])
+                    ind_name_text += " "+text
+                    break
+            if not ind_name_cords:
+                return result
+            if len(ind_name_cords) > 1:
+                ind_name_cords = ind_name_cords[:-1]
+
+            for i in ind_name_cords:
+                width = i[2] - i[0]
+                ind_name_coordinates.append([i[0], i[1], i[0] + int(0.40 * width), i[3]])
+        
+            result = {
+                "Passport IND Name": ind_name_text,
+                "coordinates": ind_name_coordinates
+            }
+            return result
+        except Exception as error:
             result = {
                 "Passport IND Name": "",
                 "coordinates": []
             }
             return result
-        if len(ind_name_cords) > 1:
-            ind_name_cords = ind_name_cords[:-1]
 
-        for i in ind_name_cords:
-             width = i[2] - i[0]
-             ind_name_coordinates.append([i[0], i[1], i[0] + int(0.40 * width), i[3]])
-        
-        result = {
-            "Passport IND Name": ind_name_text,
-            "coordinates": ind_name_coordinates
-        }
-        return result
 
     """func: extract pincode"""
     def extract_pincode(self):
-        result = {}
-        pincode_number = ""
-        pincode_coordinates = []
-        pincode_coords = []
-
-        """get the coordinates"""
-        for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
-            if len(text) == 6 and text.isdigit():
-                pincode_coords.append([x1, y1, x2, y2])
-                pincode_number += " "+text
-                break
-        
-        if not pincode_coordinates:
+        try:
             result = {
                 "Passport Pincode": "",
                 "coordinates": []
             }
-        for i in pincode_coords:
-            width = i[2] - i[0]
-            pincode_coordinates.append([i[0], i[1], i[0] + int(0.30 * width), i[3]])
-        
-        result = {
-            "Passport Pincode": pincode_number,
-            "coordinates": pincode_coordinates
-        }
+            pincode_number = ""
+            pincode_coordinates = []
+            pincode_coords = []
 
-        return result
+            """get the coordinates"""
+            for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
+                if len(text) == 6 and text.isdigit():
+                    pincode_coords.append([x1, y1, x2, y2])
+                    pincode_number += " "+text
+                    break
+        
+            if not pincode_coordinates:
+                return result
+            
+            for i in pincode_coords:
+                width = i[2] - i[0]
+                pincode_coordinates.append([i[0], i[1], i[0] + int(0.30 * width), i[3]])
+        
+            result = {
+                "Passport Pincode": pincode_number,
+                "coordinates": pincode_coordinates
+            }
+            return result
+        except Exception as error:
+            result = {
+                "Passport Pincode": "",
+                "coordinates": []
+            }
+            return result
+
     
     """func: extract state"""
     def extract_state(self):
-        result = {}
-        state_name = ""
-        state_coordinates = []
-
-        """get the coordinates"""
-        for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
-            if text.lower() in self.states:
-                state_coordinates.append([x1, y1, x2, y2])
-                state_name = text
-
-        if not state_coordinates:
+        try:
             result = {
                 "Passport Place": "",
                 "coordinates": []
             }
+            state_name = ""
+            state_coordinates = []
 
-        result = {
-            "Passport Place": state_name,
-            "coordinates": state_coordinates
-        }
+            """get the coordinates"""
+            for i,(x1, y1, x2, y2, text) in enumerate(self.coordinates):
+                if text.lower() in self.states:
+                    state_coordinates.append([x1, y1, x2, y2])
+                    state_name = text
 
-        return result
+            if not state_coordinates:
+                return result
+
+            result = {
+                "Passport Place": state_name,
+                "coordinates": state_coordinates
+            }
+
+            return result
+        except Exception as error:
+            result = {
+                "Passport Place": "",
+                "coordinates": []
+            }
+            return result
+
     
     def __find_matching_line_index(self, lines: list, matching_text: str ) -> int:
         # find the line that matches search text
