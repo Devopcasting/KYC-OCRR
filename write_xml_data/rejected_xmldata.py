@@ -34,7 +34,8 @@ class RejectedWriteXML:
         count_index = 1
         for i in self.content:
             x1, y1, x2, y2 = i
-            data.append(f'REJECTED,0,0,0,,,,0,0,0,0,0,0,,vv,CVDPS,vv,{frame_id},{doc_id},0,{count_index},{x1},{y1},{x2},{y2},0,0,')
+            #data.append(f'REJECTED,0,0,0,,,,0,0,0,0,0,0,,vv,CVDPS,vv,{frame_id},{doc_id},0,{count_index},{x1},{y1},{x2},{y2},0,0,')
+            data.append(f'0,0,0,,,,0,0,0,0,0,0,,vv,CVDPS,vv,{frame_id},{doc_id},0,{count_index},{x1},{y1},{x2},{y2},0,0,')
             x1, y1, x2, y2 = [0, 0, 0, 0]
             count_index = count_index + 1
             
